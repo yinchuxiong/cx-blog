@@ -1,0 +1,29 @@
+[
+  {
+    "title": "AI 生成博客封面图",
+    "description": "使用 Midjourney 生成的博客封面插图，风格统一且富有科技感",
+    "image": "/img/ai-works/cover-example.jpg",
+    "tool": "Midjourney",
+    "date": "2026-06",
+    "category": "image",
+    "link": ""
+  },
+  {
+    "title": "AI 辅助文章撰写",
+    "description": "通过 Claude 辅助完成的技术文章，涵盖前端开发和系统设计",
+    "image": "/img/ai-works/article-example.jpg",
+    "tool": "Claude",
+    "date": "2026-05",
+    "category": "text",
+    "link": "/posts/hello-world"
+  },
+  {
+    "title": "AI 生成代码片段",
+    "description": "使用 AI 生成的实用代码工具集，提升开发效率",
+    "image": "/img/ai-works/code-example.jpg",
+    "tool": "GPT-4",
+    "date": "2026-04",
+    "category": "code",
+    "link": ""
+  }
+]

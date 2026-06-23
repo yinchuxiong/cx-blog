@@ -1,0 +1,149 @@
+#ai-page
+  //- 头部 hero 区域 - 参考 about 页面的渐变卡片风格
+  .ai-hero.author-content-item.single
+    .card-content
+      .author-content-item-tips AI 中心
+      .author-content-item-title 探索 AI 的力量
+      .ai-hero-desc 工具 · 创作 · 工作流
+      .ai-hero-stats
+        - var enabledTools = (site.data.ai_tools || []).filter(t => t.enabled)
+        .ai-stat
+          span.ai-stat-num= site.data.ai_tools ? site.data.ai_tools.length : 0
+          span.ai-stat-label 工具总数
+        .ai-stat
+          span.ai-stat-num= enabledTools.length
+          span.ai-stat-label 已启用
+        .ai-stat
+          span.ai-stat-num= site.data.ai_works ? site.data.ai_works.length : 0
+          span.ai-stat-label AI 作品
+      .card-background-icon
+        i.anzhiyufont.anzhiyu-icon-robot
+
+  //- AI 工具区域
+  .ai-tools-section
+    .ai-section-label
+      i.anzhiyufont.anzhiyu-icon-microchip
+      span AI 工具
+      span.ai-section-desc 精选 AI 工具集，点击卡片开始使用
+
+    if site.data.ai_tools && site.data.ai_tools.length > 0
+      .author-content
+        each tool, index in site.data.ai_tools
+          - var modeLabel = ''
+          case tool.mode
+            when 'iframe'
+              - modeLabel = 'iframe 嵌入'
+            when 'api-gateway'
+              - modeLabel = 'API 网关'
+            when 'backend'
+              - modeLabel = '后端服务'
+            when 'link'
+              - modeLabel = '外部链接'
+            default
+              - modeLabel = '本地工具'
+          .author-content-item.ai-tool-card(
+            class= (!tool.enabled ? 'disabled' : '')
+            data-tool-id= tool.id
+            data-tool-mode= tool.mode
+            data-tool-endpoint= tool.endpoint || ''
+            data-tool-method= tool.method || 'POST'
+            data-tool-url= tool.url || ''
+            data-tool-placeholder= tool.placeholder || ''
+            data-tool-stream= tool.streamEnabled ? 'true' : 'false'
+            data-tool-show-usage= tool.showUsage ? 'true' : 'false'
+          )
+            .ai-tool-icon
+              i.anzhiyufont(class= tool.icon || 'anzhiyu-icon-cube')
+            .ai-tool-body
+              .author-content-item-tips= modeLabel
+              span.author-content-item-title.ai-tool-name= tool.name
+              .ai-tool-desc= tool.description
+              if !tool.enabled
+                .ai-tool-status 即将上线
+              else
+                .ai-tool-action
+                  span 打开工具
+                  i.anzhiyufont.anzhiyu-icon-arrow-right
+    else
+      .ai-empty
+        i.anzhiyufont.anzhiyu-icon-inbox
+        p 暂未配置 AI 工具
+
+  //- AI 作品区域
+  .ai-works-section
+    .ai-section-label
+      i.anzhiyufont.anzhiyu-icon-palette
+      span AI 作品
+      span.ai-section-desc AI 辅助创作的作品集
+
+    if site.data.ai_works && site.data.ai_works.length > 0
+      .author-content
+        each work, index in site.data.ai_works
+          .author-content-item.ai-work-card
+            if work.image
+              .ai-work-cover
+                img(
+                  data-lazy-src= url_for(work.image)
+                  alt= work.title
+                  onerror="this.onerror=null;this.src='"+ url_for(theme.error_img.flink) +"'"
+                )
+            else
+              .ai-work-cover.ai-work-cover-empty
+                i.anzhiyufont.anzhiyu-icon-image
+            .ai-work-body
+              .author-content-item-tips= work.tool
+              span.author-content-item-title.ai-work-title= work.title
+              .ai-work-desc= work.description
+              .ai-work-footer
+                span.ai-work-date= work.date
+                if work.link
+                  a.ai-work-link(href= url_for(work.link) target="_blank") 查看详情
+    else
+      .ai-empty
+        i.anzhiyufont.anzhiyu-icon-inbox
+        p 暂无 AI 作品展示
+
+  //- 工具交互面板（抽屉）—— 保留之前的交互逻辑
+  #ai-tool-panel.ai-tool-panel
+    .ai-tool-panel-overlay
+    .ai-tool-panel-drawer
+      .ai-tool-panel-header
+        .ai-tool-panel-title
+          i.anzhiyufont.anzhiyu-icon-cube#ai-panel-icon
+          span#ai-panel-name 工具名称
+        .ai-tool-panel-actions
+          button.ai-panel-btn-close(title="关闭")
+            i.anzhiyufont.anzhiyu-icon-xmark
+      .ai-tool-panel-body
+        //- iframe 嵌入模式
+        #ai-iframe-container.ai-iframe-container(style="display:none")
+          .ai-iframe-loading
+            i.anzhiyufont.anzhiyu-icon-spinner.anzhiyu-spin
+            span 正在加载工具...
+          iframe#ai-tool-iframe(
+            src=""
+            frameborder="0"
+            allow="clipboard-read; clipboard-write"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            style="display:none"
+          )
+
+        //- API 对话模式（网关 / 后端）
+        #ai-api-container.ai-api-container(style="display:none")
+          .ai-chat-messages#ai-chat-messages
+            .ai-message.ai-message-system
+              .ai-message-avatar
+                i.anzhiyufont.anzhiyu-icon-robot
+              .ai-message-content
+                p 你好！输入你的请求，我会为你处理。
+          .ai-chat-input-area
+            .ai-chat-input-row
+              textarea#ai-chat-input.ai-chat-input(
+                placeholder="输入你的问题..."
+                rows="2"
+              )
+              button#ai-chat-send.ai-chat-send-btn(title="发送")
+                i.anzhiyufont.anzhiyu-icon-paper-plane
+            .ai-chat-status
+              span#ai-chat-status-text
+              span#ai-token-usage(style="display:none")

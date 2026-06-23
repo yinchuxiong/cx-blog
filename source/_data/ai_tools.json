@@ -1,0 +1,112 @@
+[
+  {
+    "id": "ai-chat",
+    "name": "AI 对话助手",
+    "description": "通过 API 网关调用大模型进行智能对话，支持多轮会话",
+    "icon": "anzhiyu-icon-comments",
+    "mode": "api-gateway",
+    "endpoint": "/api/gateway/chat",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "placeholder": "输入你的问题，AI 会为你解答...",
+    "streamEnabled": true,
+    "showUsage": true,
+    "enabled": true
+  },
+  {
+    "id": "article-generator",
+    "name": "AI 文章生成器",
+    "description": "输入主题关键词，自动生成博客文章大纲和初稿",
+    "icon": "anzhiyu-icon-pen-to-square",
+    "mode": "iframe",
+    "url": "",
+    "placeholder": "请输入文章主题...",
+    "enabled": false
+  },
+  {
+    "id": "translator",
+    "name": "AI 翻译助手",
+    "description": "多语言智能翻译，支持中英日韩等多语种互译",
+    "icon": "anzhiyu-icon-language",
+    "mode": "api-gateway",
+    "endpoint": "/api/gateway/translate",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "placeholder": "输入需要翻译的文本...",
+    "streamEnabled": false,
+    "showUsage": true,
+    "enabled": true
+  },
+  {
+    "id": "image-generator",
+    "name": "AI 图片生成",
+    "description": "输入描述词，使用 AI 生成创意图片",
+    "icon": "anzhiyu-icon-images",
+    "mode": "api-gateway",
+    "endpoint": "/api/gateway/image",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "placeholder": "描述你想要的图片...",
+    "streamEnabled": false,
+    "showUsage": true,
+    "enabled": true
+  },
+  {
+    "id": "code-explain",
+    "name": "AI 代码解释器",
+    "description": "粘贴代码片段，AI 为你解释代码逻辑和实现原理",
+    "icon": "anzhiyu-icon-code",
+    "mode": "api-gateway",
+    "endpoint": "/api/gateway/code",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "placeholder": "粘贴你的代码...",
+    "streamEnabled": true,
+    "showUsage": true,
+    "enabled": true
+  },
+  {
+    "id": "dify-workflow",
+    "name": "Dify 工作流",
+    "description": "通过 Dify 平台搭建的自定义 AI 工作流，支持复杂的多步骤任务",
+    "icon": "anzhiyu-icon-diagram-project",
+    "mode": "iframe",
+    "url": "",
+    "placeholder": "",
+    "enabled": false
+  },
+  {
+    "id": "coze-bot",
+    "name": "Coze 智能体",
+    "description": "在 Coze 平台创建的 AI 智能体，具备特定领域的专业能力",
+    "icon": "anzhiyu-icon-robot",
+    "mode": "iframe",
+    "url": "",
+    "placeholder": "",
+    "enabled": false
+  },
+  {
+    "id": "custom-backend",
+    "name": "自定义后端服务",
+    "description": "调用你的自有后端服务，实现定制化的 AI 功能",
+    "icon": "anzhiyu-icon-server",
+    "mode": "backend",
+    "endpoint": "/api/custom/process",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "placeholder": "输入请求内容...",
+    "streamEnabled": false,
+    "showUsage": false,
+    "enabled": false
+  }
+]

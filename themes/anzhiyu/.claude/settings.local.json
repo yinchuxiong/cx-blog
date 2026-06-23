@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm config *)",
+      "Bash(npm install *)",
+      "Bash(npm cache *)",
+      "Bash(mkdir -p /e/anzhiyu-blog)",
+      "Read(//e//**)",
+      "Bash(npm init *)",
+      "Bash(mkdir *)",
+      "Bash(npx hexo *)",
+      "Bash(rm -rf node_modules package.json package-lock.json)",
+      "Bash(mkdir -p source/_posts scaffolds themes scripts)"
+    ]
+  }
+}
