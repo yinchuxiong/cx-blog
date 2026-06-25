@@ -4,18 +4,15 @@ cd /d "%~dp0"
 
 echo.
 echo   ============================================
-echo     Soar Blog - 启动中...
+echo     Soar Blog - 重启中...
 echo   ============================================
 echo.
 
-REM 检查 node_modules 是否存在
-if not exist "node_modules\" (
-    echo [1/2] 正在安装依赖...
-    call npm install
-) else (
-    echo [1/2] 依赖已存在，跳过安装
-)
+echo [1/2] 停止端口 4000 的旧服务 + 清理缓存...
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :4000 ^| findstr LISTENING') do taskkill /f /pid %%a 2>nul
+call npx hexo clean
 
+echo.
 echo [2/2] 启动 Hexo 服务器...
 echo.
 echo   访问地址: http://localhost:4000

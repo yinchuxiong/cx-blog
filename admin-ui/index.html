@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 — Soar Blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%234B5CC4'/><text x='32' y='44' font-size='36' text-anchor='middle' fill='white'>安</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- EasyMDE Markdown Editor (CDN) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+</head>
+<body>
+  <!-- ========== Sidebar ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">安</div>
+      <div class="brand-text">
+        <span class="brand-name">Soar</span>
+        <span class="brand-sub">管理后台</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#posts" class="nav-item active" data-nav="posts">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>文章</span>
+        <span class="nav-badge" id="post-count">0</span>
+      </a>
+      <a href="#drafts" class="nav-item" data-nav="drafts">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span>草稿</span>
+        <span class="nav-badge draft" id="draft-count">0</span>
+      </a>
+      <a href="#pages" class="nav-item" data-nav="pages">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span>页面</span>
+      </a>
+      <a href="#settings" class="nav-item" data-nav="settings">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>设置</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/" target="_blank" class="footer-link" title="预览博客">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        <span>预览博客</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========== Main Content ========== -->
+  <main class="main" id="main">
+    <!-- Header -->
+    <header class="topbar">
+      <button class="btn-icon mobile-toggle" id="sidebar-toggle" title="菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title" id="topbar-title">文章管理</div>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="search-input" placeholder="搜索文章...">
+        </div>
+        <button class="btn btn-primary" id="btn-new">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          新建
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <div class="content" id="content">
+      <!-- Post List View -->
+      <div class="view" id="view-list">
+        <div class="list-header">
+          <div class="list-filter">
+            <button class="filter-chip active" data-filter="all">全部</button>
+          </div>
+          <div class="list-info">
+            <span id="list-info-text">0 篇文章</span>
+          </div>
+        </div>
+        <div class="post-list" id="post-list">
+          <!-- Rendered by JS -->
+        </div>
+        <div class="empty-state" id="empty-state" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          <p class="empty-text">还没有文章</p>
+          <button class="btn btn-primary" onclick="app.newPost()">立即创作</button>
+        </div>
+      </div>
+
+      <!-- Editor View -->
+      <div class="view" id="view-editor" style="display:none;">
+        <div class="editor-toolbar">
+          <button class="btn btn-sm btn-ghost" id="btn-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            返回
+          </button>
+          <div class="editor-meta">
+            <input type="text" class="editor-title-input" id="editor-title" placeholder="文章标题...">
+            <div class="editor-tags-row">
+              <input type="text" class="editor-tags-input" id="editor-tags" placeholder="标签（英文逗号分隔）">
+              <input type="text" class="editor-cats-input" id="editor-categories" placeholder="分类（英文逗号分隔）">
+            </div>
+          </div>
+          <div class="editor-actions">
+            <span class="editor-status" id="editor-status"></span>
+            <button class="btn btn-sm btn-ghost" id="btn-theme-preview" title="博客主题预览">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              博客预览
+            </button>
+            <button class="btn btn-sm btn-ghost" id="btn-draft-toggle" title="切换草稿状态">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </button>
+            <button class="btn btn-sm btn-danger" id="btn-delete" title="删除">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+            <button class="btn btn-sm btn-primary" id="btn-save">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              保存
+            </button>
+          </div>
+        </div>
+        <!-- Editor + Preview side-by-side row -->
+        <div class="editor-preview-row" id="editor-preview-row">
+          <div class="editor-body" id="editor-body">
+            <textarea id="editor-textarea"></textarea>
+          </div>
+          <!-- Theme Preview Panel -->
+          <div class="theme-preview" id="theme-preview" style="display:none;">
+          <div class="theme-preview-header">
+            <div class="theme-preview-tabs">
+              <button class="theme-preview-tab active" data-preview-mode="desktop" title="桌面端">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              </button>
+              <button class="theme-preview-tab" data-preview-mode="mobile" title="移动端">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </button>
+            </div>
+            <span class="theme-preview-title">博客主题预览</span>
+            <button class="btn-icon theme-preview-close" id="btn-theme-preview-close" title="关闭预览">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="theme-preview-body">
+            <iframe id="theme-preview-iframe" class="theme-preview-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+          </div>
+        </div>
+        </div><!-- /editor-preview-row -->
+      </div>
+
+      <!-- Settings View -->
+      <div class="view" id="view-settings" style="display:none;">
+        <div class="settings-container">
+          <div class="settings-section">
+            <h3>图片上传设置</h3>
+            <div class="setting-row">
+              <label>图片存储路径</label>
+              <input type="text" class="setting-input" id="setting-image-path" value="/images" placeholder="/images">
+            </div>
+            <div class="setting-row">
+              <label>图片文件名前缀</label>
+              <input type="text" class="setting-input" id="setting-image-prefix" value="pasted-" placeholder="pasted-">
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3>部署</h3>
+            <div class="setting-row">
+              <button class="btn btn-primary" id="btn-deploy">立即部署</button>
+              <span class="setting-hint" id="deploy-hint">需要先在 _config.yml 中配置 admin.deployCommand</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-save-settings">保存设置</button>
+        </div>
+      </div>
+
+      <!-- Pages View -->
+      <div class="view" id="view-pages" style="display:none;">
+        <div class="list-header">
+          <div class="list-info"><span id="pages-info-text">0 个页面</span></div>
+        </div>
+        <div class="post-list" id="pages-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========== New Post Modal ========== -->
+  <div class="modal-overlay" id="modal-new" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>新建文章</h2>
+        <button class="btn-icon modal-close" id="modal-new-close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>文章标题</label>
+          <input type="text" class="form-input" id="new-post-title" placeholder="输入标题..." autofocus>
+        </div>
+        <div class="form-group">
+          <label>类型</label>
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="post-type" value="draft" checked> 草稿（稍后发布）</label>
+            <label class="radio-label"><input type="radio" name="post-type" value="post"> 直接发布</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="modal-new-cancel">取消</button>
+        <button class="btn btn-primary" id="modal-new-confirm">创建并编辑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Delete Confirm Modal ========== -->
+  <div class="modal-overlay" id="modal-delete" style="display:none;">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2>确认删除</h2>
+      </div>
+      <div class="modal-body">
+        <p>确定要删除 <strong id="delete-post-title"></strong> 吗？此操作不可撤销。</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="modal-delete-cancel">取消</button>
+        <button class="btn btn-danger" id="modal-delete-confirm">删除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- App Script -->
+  <script src="js/app.js"></script>
+</body>
+</html>

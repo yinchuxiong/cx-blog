@@ -3,17 +3,15 @@ cd "$(dirname "$0")"
 
 echo ""
 echo "  ============================================"
-echo "    Soar Blog - 启动中..."
+echo "    Soar Blog - 重启中..."
 echo "  ============================================"
 echo ""
 
-if [ ! -d "node_modules" ]; then
-    echo "[1/2] 正在安装依赖..."
-    npm install
-else
-    echo "[1/2] 依赖已存在，跳过安装"
-fi
+echo "[1/2] 停止端口 4000 的旧服务 + 清理缓存..."
+npx kill-port 4000 2>/dev/null
+npx hexo clean
 
+echo ""
 echo "[2/2] 启动 Hexo 服务器..."
 echo ""
 echo "  访问地址: http://localhost:4000"

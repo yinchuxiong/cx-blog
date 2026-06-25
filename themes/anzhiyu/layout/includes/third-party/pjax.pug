@@ -1,7 +1,7 @@
 - var pjaxExclude = 'a:not([target="_blank"])'
 if theme.pjax.exclude
   each val in theme.pjax.exclude
-    - pjaxExclude = pjaxExclude + `:not([href="${val}"])`
+    - pjaxExclude = pjaxExclude + `:not([href^="${val}"])`
 
 - let pjaxSelectors = ['head > title','#config-diff', '#body-wrap','#rightside-config-hide','#rightside-config-show','.js-pjax']
 

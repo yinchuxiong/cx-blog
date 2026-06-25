@@ -1,9 +1,9 @@
 # Hexo Configuration
-title: AnZhiYu Blog
+title: Soar Blog
 subtitle: ''
 description: ''
 keywords:
-author: AnZhiYu
+author: Soar
 language: zh-CN
 timezone: ''
 
@@ -88,6 +88,13 @@ bangumi:
   pagination: false
   metaColor: "#555"
   color: "#555"
+
+# Search (本地搜索)
+search:
+  path: search.xml
+  field: post
+  content: true
+  format: html
 
 # Deployment
 deploy:
