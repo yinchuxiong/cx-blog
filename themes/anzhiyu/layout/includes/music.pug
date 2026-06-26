@@ -1,7 +1,38 @@
 - const nav_music_id = theme.nav_music.id
 - const nav_music_server = theme.nav_music.server
 - const nav_music_volume = theme.nav_music.volume
-#nav-music
-  a#nav-music-hoverTips(onclick='anzhiyu.musicToggle()' accesskey="m") 播放音乐
+#nav-music(data-id=nav_music_id data-server=nav_music_server data-volume=nav_music_volume)
+  .nm-float
+    .nm-cover(title="点击展开歌词")
+      img.nm-cover-img(src="")
+      .nm-cover-disc
+    .nm-body
+      .nm-info
+        .nm-title 未在播放
+        .nm-artist
+      .nm-progress
+        .nm-progress-bar
+          .nm-progress-played(style="width: 0%")
+        .nm-time
+          span.nm-time-now 00:00
+          span.nm-time-total 00:00
+    .nm-controls
+      button.nm-btn.nm-btn-prev(title="上一曲")
+        svg(viewBox="0 0 24 24" width="14" height="14" fill="currentColor"): path(d="M19 6l-8 6 8 6V6zm-8 0l-8 6 8 6V6z")
+      button.nm-btn.nm-btn-play(title="播放")
+        svg(viewBox="0 0 24 24" width="14" height="14" fill="currentColor"): polygon(points="8,5 19,12 8,19")
+      button.nm-btn.nm-btn-next(title="下一曲")
+        svg(viewBox="0 0 24 24" width="14" height="14" fill="currentColor"): path(d="M5 6l8 6-8 6V6zm8 0l8 6-8 6V6z")
+      button.nm-btn.nm-btn-list(title="播放列表")
+        svg(viewBox="0 0 24 24" width="14" height="14" fill="currentColor"): path(d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z")
+  .nm-lyric-panel
+    .nm-lyric-inner
+  .nm-playlist-panel
+    .nm-playlist-header
+      span 播放列表
+      span.nm-playlist-count
+      button.nm-playlist-close(title="关闭")
+        svg(viewBox="0 0 24 24" width="14" height="14" fill="currentColor"): path(d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z")
+    ul.nm-playlist-list
   #console-music-bg
-  meting-js(id=nav_music_id server=nav_music_server type="playlist" mutex="true" preload="none" theme="var(--anzhiyu-main)" data-lrctype="0" order="random" volume=nav_music_volume)
+  #nav-music-aplayer(style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;opacity:0")

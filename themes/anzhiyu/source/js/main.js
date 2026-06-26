@@ -1,9 +1,5 @@
-// 第一次播放音乐
-var anzhiyu_musicFirst = false;
 // 快捷键
 var anzhiyu_keyboard = null;
-// 音乐播放状态
-var anzhiyu_musicPlaying = false;
 var $bodyWrap = document.getElementById("body-wrap");
 var anzhiyu_intype = false;
 var anzhiyu_keyUpEvent_timeoutId = null;
@@ -154,7 +150,7 @@ var musicVolume = 0.8;
 var changeMusicListFlag = false;
 // 当前默认播放列表
 var defaultPlayMusicList = [];
-var themeColorMeta, pageHeaderEl, navMusicEl, consoleEl;
+var themeColorMeta, pageHeaderEl, consoleEl;
 
 document.addEventListener("DOMContentLoaded", function () {
   let headerContentWidth, $nav, $rightMenu;
@@ -644,12 +640,12 @@ document.addEventListener("DOMContentLoaded", function () {
       percentageScrollFn(currentTop);
     }, 96);
 
-    // 进入footer隐藏音乐
+    // 进入footer隐藏音乐（页面内容高于视口时才触发）
     if (footerDom) {
       anzhiyu
         .intersectionObserver(
           () => {
-            if (footerDom && musicDom && 768 < document.body.clientWidth) {
+            if (footerDom && musicDom && 768 < document.body.clientWidth && document.body.scrollHeight > window.innerHeight) {
               musicDom.style.bottom = "-10px";
               musicDom.style.opacity = "0";
             }
@@ -893,6 +889,10 @@ document.addEventListener("DOMContentLoaded", function () {
     translateLink: () => {
       // switch between traditional and simplified chinese
       window.translateFn.translatePage();
+    },
+    musicCookieBtn: () => {
+      // open cookie settings modal
+      anzhiyu.musicSetCookie();
     },
   };
 
@@ -1447,30 +1447,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
-  // 监听nav是否被其他音频暂停⏸️
-  const listenNavMusicPause = function () {
-    const timer = setInterval(() => {
-      if (navMusicEl && navMusicEl.querySelector("#nav-music meting-js").aplayer) {
-        clearInterval(timer);
-        let msgPlay = '<i class="anzhiyufont anzhiyu-icon-play"></i><span>播放音乐</span>';
-        let msgPause = '<i class="anzhiyufont anzhiyu-icon-pause"></i><span>暂停音乐</span>';
-        navMusicEl.querySelector("#nav-music meting-js").aplayer.on("pause", function () {
-          navMusicEl.classList.remove("playing");
-          document.getElementById("menu-music-toggle").innerHTML = msgPlay;
-          document.getElementById("nav-music-hoverTips").innerHTML = "音乐已暂停";
-          document.querySelector("#consoleMusic").classList.remove("on");
-          anzhiyu_musicPlaying = false;
-          navMusicEl.classList.remove("stretch");
-        });
-        navMusicEl.querySelector("#nav-music meting-js").aplayer.on("play", function () {
-          navMusicEl.classList.add("playing");
-          document.getElementById("menu-music-toggle").innerHTML = msgPause;
-          document.querySelector("#consoleMusic").classList.add("on");
-          anzhiyu_musicPlaying = true;
-          // navMusicEl.classList.add("stretch");
-        });
-      }
-    }, 16);
+  // 初始化悬浮音乐播放器
+  const initNavMusic = function () {
+    if (typeof NavMusic !== "undefined") NavMusic.init();
   };
 
   // 开发者工具键盘监听
@@ -1706,7 +1685,7 @@ document.addEventListener("DOMContentLoaded", function () {
     clickFnOfSubMenu();
     GLOBAL_CONFIG.islazyload && lazyloadImg();
     GLOBAL_CONFIG.copyright !== undefined && addCopyright();
-    GLOBAL_CONFIG.navMusic && listenNavMusicPause();
+    GLOBAL_CONFIG.navMusic && initNavMusic();
     if (GLOBAL_CONFIG.shortcutKey && document.getElementById("consoleKeyboard")) {
       localStorage.setItem("keyboardToggle", "true");
       document.getElementById("consoleKeyboard").classList.add("on");
@@ -1729,7 +1708,6 @@ document.addEventListener("DOMContentLoaded", function () {
     initAdjust();
     themeColorMeta = document.querySelector('meta[name="theme-color"]');
     pageHeaderEl = document.getElementById("page-header");
-    navMusicEl = document.getElementById("nav-music");
     consoleEl = document.getElementById("console");
 
     addDarkModeEventListener("console", ".darkmode_switchbutton");
@@ -1797,8 +1775,9 @@ document.addEventListener("DOMContentLoaded", function () {
     anzhiyu.topCategoriesBarScroll();
     anzhiyu.switchRightClickMenuHotReview();
     anzhiyu.getCustomPlayList();
-    anzhiyu.addEventListenerConsoleMusicList(false);
     anzhiyu.initPaginationObserver();
+
+    // nav-music 面板点击外部/ESC 关闭逻辑已移至 NavMusic 模块内部处理
 
     setTimeout(() => {
       setInputFocusListener();
