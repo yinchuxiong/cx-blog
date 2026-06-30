@@ -76,17 +76,40 @@ if hexo-config('nav_music.enable') == false
 @media screen and (max-width: 1400px)
   body
     #anMusic-page
-      #anMusicSwitching, #anMusicRefreshBtn, #anMusicBtnGetSong
-        right 7vw
-      #anMusicSwitching
-        bottom: 100px
       #anMusicRefreshBtn
+        right 7vw
         bottom: 160px
-      #anMusicBtnGetSong
-        bottom: 220px
 
 #anMusic-page
-  #anMusicRefreshBtn, #anMusicBtnGetSong, #anMusicSwitching
+  #anMusicSearchBox
+    display: flex
+    align-items: center
+    margin-bottom: 6px
+    padding: 0 25px 0 0
+    position: relative
+    .anMusic-search-icon
+      position: absolute
+      left: 12px
+      color: rgba(255, 255, 255, 0.6)
+      font-size: 15px
+      pointer-events: none
+      z-index: 1
+    #anMusicSearchInput
+      width: 100%
+      padding: 10px 14px 10px 40px
+      border: none
+      border-radius: 8px
+      background: rgba(255, 255, 255, 0.08)
+      color: #fff
+      font-size: 14px
+      outline: none
+      transition: background .3s ease
+      box-sizing: border-box
+      &::placeholder
+        color: rgba(255, 255, 255, 0.35)
+      &:focus
+        background: rgba(255, 255, 255, 0.14)
+  #anMusicRefreshBtn
     position: fixed;
     display: flex;
     width: 50px;
@@ -103,21 +126,10 @@ if hexo-config('nav_music.enable') == false
     align-items: center;
     cursor: pointer;
     z-index 2
-  #anMusicBtnGetSong
-    right: 11vw;
-  #anMusicRefreshBtn
     right: 7vw;
-  #anMusicSwitching
-    right: 15vw;
   +maxWidth768()
-    div#anMusicBtnGetSong
-      right: 80px;
-      bottom: 150px;
     div#anMusicRefreshBtn
       right: 20px;
-      bottom: 150px;
-    div#anMusicSwitching
-      right: 140px;
       bottom: 150px;
   meting-js
     .aplayer
@@ -234,6 +246,9 @@ if hexo-config('nav_music.enable') == false
       .aplayer-list
           width 60%
           height 100%
+          // 桌面端始终显示歌单列表，覆盖 APlayer 默认的隐藏行为
+          &.aplayer-list-hide
+            display block !important
         ol
           padding-right 25px
           & > li
@@ -255,6 +270,124 @@ if hexo-config('nav_music.enable') == false
               &.aplayer-list-author
                 opacity 0.6
 
+
+/* Cookie 弹窗 */
+#music-cookie-modal
+  display: none
+  position: fixed
+  top: 0
+  left: 0
+  width: 100%
+  height: 100%
+  z-index: 1001
+  align-items: center
+  justify-content: center
+
+  &.show
+    display: flex
+
+  .music-cookie-overlay
+    position: absolute
+    top: 0
+    left: 0
+    width: 100%
+    height: 100%
+    background: rgba(0, 0, 0, 0.5)
+    animation: maskIn .3s ease
+
+  .music-cookie-dialog
+    position: relative
+    background: var(--anzhiyu-card-bg)
+    border-radius: 12px
+    padding: 24px
+    width: 90%
+    max-width: 460px
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3)
+    border: var(--style-border)
+    animation: dialogIn .3s ease
+    z-index: 1
+
+    .music-cookie-title
+      font-size: 18px
+      font-weight: 700
+      color: var(--anzhiyu-fontcolor)
+      margin-bottom: 8px
+      display: flex
+      align-items: center
+      gap: 8px
+
+      i
+        font-size: 20px
+        color: var(--anzhiyu-main)
+
+    .music-cookie-desc
+      font-size: 13px
+      color: var(--anzhiyu-secondtext)
+      margin-bottom: 16px
+      line-height: 1.5
+
+    .music-cookie-input
+      width: 100%
+      padding: 10px 14px
+      border: var(--style-border)
+      border-radius: 8px
+      background: var(--anzhiyu-card-bg)
+      color: var(--anzhiyu-fontcolor)
+      font-size: 14px
+      outline: none
+      transition: border-color .3s
+      box-sizing: border-box
+      resize: vertical
+      min-height: 44px
+
+      &:focus
+        border-color: var(--anzhiyu-main)
+
+      &::placeholder
+        color: var(--anzhiyu-secondtext)
+
+    .music-cookie-actions
+      display: flex
+      justify-content: flex-end
+      gap: 10px
+      margin-top: 16px
+
+      .music-cookie-btn
+        padding: 8px 20px
+        border-radius: 8px
+        border: var(--style-border)
+        cursor: pointer
+        font-size: 14px
+        transition: all .3s
+        background: var(--anzhiyu-card-bg)
+        color: var(--anzhiyu-fontcolor)
+
+        &:hover
+          background: var(--anzhiyu-main)
+          color: var(--anzhiyu-white)
+          border-color: var(--anzhiyu-main)
+
+        &.primary
+          background: var(--anzhiyu-main)
+          color: var(--anzhiyu-white)
+          border-color: var(--anzhiyu-main)
+
+          &:hover
+            opacity: 0.85
+
+@keyframes maskIn
+  from
+    opacity: 0
+  to
+    opacity: 1
+
+@keyframes dialogIn
+  from
+    opacity: 0
+    transform: translateY(-20px) scale(0.95)
+  to
+    opacity: 1
+    transform: translateY(0) scale(1)
 
 @media screen and (max-width: 768px)
   body[data-type="music"]
@@ -373,5 +506,13 @@ if hexo-config('nav_music.enable') == false
                   position absolute
                   right 25px
                   top -90px
+
+    #anMusicSearchBox
+      margin: 6px 10px
+      padding: 0 10px 0 0
+      #anMusicSearchInput
+        padding: 10px 14px 10px 36px
+        font-size: 13px
+
 
       

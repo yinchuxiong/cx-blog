@@ -9,6 +9,10 @@ mixin rightsideItem(array)
       when 'translate'
         if translate.enable
           button#translateLink(type="button" title=_p('rightside.translate_title'))= translate.default
+      when 'musicCookie'
+        if theme.nav_music.enable
+          button#musicCookieBtn(type="button" title="设置网易云Cookie")
+            i.anzhiyufont.anzhiyu-icon-music
       when 'darkmode'
         if darkmode.enable && darkmode.button
           button#darkmode(type="button" title=_p('rightside.night_mode_title'))
@@ -35,7 +39,7 @@ mixin rightsideItem(array)
 
 #rightside
   - const { enable, hide, show } = theme.rightside_item_order
-  - const hideArray = enable ? hide && hide.split(',') : ['readmode','translate','darkmode','hideAside']
+  - const hideArray = enable ? hide && hide.split(',') : ['readmode','translate','musicCookie','darkmode','hideAside']
   - const showArray = enable ? show && show.split(',') : ['toc','chat','comment']
 
   
@@ -49,10 +53,10 @@ mixin rightsideItem(array)
          i.anzhiyufont.anzhiyu-icon-gear
     else
       if is_post()
-        if (readmode || translate.enable || (darkmode.enable && darkmode.button))
+        if (readmode || translate.enable || (darkmode.enable && darkmode.button) || theme.nav_music.enable)
           button#rightside-config(type="button" title=_p("rightside.setting"))
             i.anzhiyufont.anzhiyu-icon-gear
-      else if translate.enable || (darkmode.enable && darkmode.button)
+      else if translate.enable || (darkmode.enable && darkmode.button) || theme.nav_music.enable
         button#rightside-config(type="button" title=_p("rightside.setting"))
           i.anzhiyufont.anzhiyu-icon-gear
 

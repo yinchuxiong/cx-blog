@@ -25,7 +25,7 @@ nav:
       item:
         - name: 博客
           link: 
-          icon: /img/favicon.png
+          icon: /img/favicon.ico
 
 # mourn （哀悼日，指定日期网站简单变灰，不包括滚动条）
 # 注意： 仅网站首页变灰，其他页面正常显示
@@ -152,7 +152,7 @@ cover:
   position: both
   # When cover is not set, the default cover is displayed (当没有设置cover时，默认的封面显示)
   default_cover:
-    - https://file.crazywong.com/gh/jerryc127/CDN@latest/cover/default_bg.png
+    - /img/default_cover.jpg
 
 # Replace Broken Images (替换无法显示的图片)
 error_img:

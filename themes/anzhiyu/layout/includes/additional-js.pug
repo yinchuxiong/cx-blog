@@ -23,7 +23,84 @@ div
     != partial("includes/third-party/pangu.pug", {}, { cache: true })
   if theme.asset.meting_api
     script.
-      var meting_api = "!{theme.asset.meting_api}";
+      (function() {
+        var api = "!{theme.asset.meting_api}";
+        try {
+          var cookie = localStorage.getItem("anzhiyu_music_cookie");
+          if (cookie) {
+            api = api.replace(":auth", encodeURIComponent(cookie));
+          } else {
+            api = api.replace("&cookie=:auth", "").replace("?cookie=:auth&", "?").replace("?cookie=:auth", "");
+          }
+        } catch (e) {}
+        window.meting_api = api;
+
+        // 全局拦截：将旧 API 地址 (103.127.219.161) 重定向到新地址
+        (function() {
+          var OLD_HOST = "103.127.219.161";
+          var m = api.match(/\/\/([^\/]+)\//);
+          var newHost = m ? m[1] : null;
+          if (!newHost || newHost === OLD_HOST) return;
+
+          function rewrite(s) {
+            if (typeof s === "string" && s.indexOf(OLD_HOST) !== -1) {
+              return s.split(OLD_HOST).join(newHost);
+            }
+            return s;
+          }
+
+          // 1. 拦截 fetch
+          var origFetch = window.fetch;
+          window.fetch = function(url, opts) {
+            url = rewrite(url);
+            return origFetch.call(window, url, opts).then(function(resp) {
+              var ct = resp.headers.get("content-type") || "";
+              if (ct.indexOf("application/json") !== -1) {
+                return resp.text().then(function(text) {
+                  return new Response(rewrite(text), {
+                    status: resp.status,
+                    statusText: resp.statusText,
+                    headers: resp.headers
+                  });
+                });
+              }
+              return resp;
+            });
+          };
+
+          // 2. 拦截 XMLHttpRequest
+          var origXHROpen = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+            return origXHROpen.call(this, method, rewrite(url), async, user, password);
+          };
+
+          // 3. 拦截 audio/video src 属性
+          var desc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, "src");
+          if (desc && desc.set) {
+            var origSet = desc.set;
+            Object.defineProperty(HTMLMediaElement.prototype, "src", {
+              set: function(v) { origSet.call(this, rewrite(v)); },
+              get: desc.get,
+              configurable: true
+            });
+          }
+        })();
+      })();
+
+      //- 在 meting-js 初始化之前，注入已保存的网易云 cookie
+      (function() {
+        try {
+          var cookie = localStorage.getItem("anzhiyu_music_cookie");
+          if (cookie) {
+            var metingEls = document.querySelectorAll("meting-js");
+            for (var i = 0; i < metingEls.length; i++) {
+              if (!metingEls[i].hasAttribute("auth")) {
+                metingEls[i].setAttribute("auth", cookie);
+              }
+            }
+          }
+        } catch (e) {}
+      })();
 
   //- 深色模式粒子效果canvas
   if theme.universe.enable
@@ -118,6 +195,10 @@ div
       include ./third-party/aplayer.pug
     else if page.aplayer
       include ./third-party/aplayer.pug
+
+      //- meting-js 仅在音乐馆页面加载（悬浮球用 NavMusic 直接控制 APlayer）
+      if is_current("/music/")
+        script(src=url_for(theme.asset.meting_js))
 
   if theme.pjax.enable
     != partial("includes/third-party/pjax", {}, { cache: true })

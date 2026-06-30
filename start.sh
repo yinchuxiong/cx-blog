@@ -21,4 +21,4 @@ echo "  按 Ctrl+C 停止服务器"
 echo ""
 
 export NODE_TLS_REJECT_UNAUTHORIZED=0
-npx hexo server -p 4000
+npx hexo server -p 4005
