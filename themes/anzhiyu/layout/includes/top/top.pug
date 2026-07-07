@@ -1,10 +1,11 @@
 - let home_top_config = theme.home_top
 - let { title, subTitle, siteText,default_descr } = home_top_config
+- let home_top_background = home_top_config.background ? `background-image: linear-gradient(90deg, rgba(18, 24, 38, .72), rgba(18, 24, 38, .36)), url('${url_for(home_top_config.background)}');` : ''
 if home_top_config.enable
   #home_top
     .swiper_container_card(style='height: auto;width: 100%')
       #bannerGroup
-        #random-banner
+        #random-banner(style=home_top_background)
           if theme.peoplecanvas.enable
             canvas#peoplecanvas
           else 
@@ -15,9 +16,9 @@ if home_top_config.enable
             include ../anzhiyu/tags-group-all.pug
 
           a#random-hover(href='javascript:toRandomPost()')
-            i.anzhiyufont.anzhiyu-icon-paper-plane
-            .bannerText 随便逛逛
-              i.anzhiyufont.anzhiyu-icon-arrow-right
+            .bannerText
+              span.bannerText-title=title
+              span.bannerText-subtitle=subTitle
         .categoryGroup
           each item in home_top_config.category
             .categoryItem(style=`box-shadow:${item.shadow}`)
@@ -132,4 +133,3 @@ if home_top_config.enable
       setTimeout(()=>{
         initBlogSlider()
       }, 100)
-

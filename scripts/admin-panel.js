@@ -6,6 +6,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const urlParser = require('url');
 
 const adminUiPath = path.join(hexo.base_dir, 'admin-ui');
 const passwordProtected = hexo.config.admin && hexo.config.admin.username;
@@ -77,7 +78,8 @@ hexo.extend.filter.register('server_middleware', function (app) {
 
   // Intercept /admin/ routes and serve custom UI files
   app.use(function (req, res, next) {
-    var url = req.url || '';
+    var parsedUrl = urlParser.parse(req.url || '');
+    var url = parsedUrl.pathname || '';
 
     // Only intercept admin routes (not API, not login)
     if (url.indexOf(adminBaseSlash) !== 0 && url !== adminBase) return next();

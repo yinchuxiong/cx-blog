@@ -58,9 +58,9 @@ copy:
 # social settings (社交图标设置)
 # formal:
 #   name: link || icon
-social:
-  # Github: https://github.com/anzhiyu-c || anzhiyu-icon-github
-  BiliBili: https://space.bilibili.com/372204786 || anzhiyu-icon-bilibili
+social: {}
+# Github: https://github.com/anzhiyu-c || anzhiyu-icon-github
+# BiliBili: https://space.bilibili.com/372204786 || anzhiyu-icon-bilibili
 
 # 作者卡片 状态
 author_status:
@@ -902,7 +902,7 @@ darkmode:
   # autoChangeMode: 1  Following System Settings, if the system doesn't support dark mode, it will switch dark mode between 6 pm to 6 am
   # autoChangeMode: 2  Switch dark mode between 6 pm to 6 am
   # autoChangeMode: false
-  autoChangeMode: 1
+  autoChangeMode: false
   start: # 8
   end: # 22
 
@@ -1033,9 +1033,10 @@ css_prefix: true
 home_top:
   enable: true # 开关
   timemode: date #date/updated
-  title: 生活明朗
-  subTitle: 万物可爱。
-  siteText: anheyu.com
+  title: 山海入怀
+  subTitle: 风也温柔。
+  siteText: soar.blog
+  background: https://bu.dusays.com/2023/05/08/645907596997d.gif
   category:
     - name: java
       path: /categories/java/
@@ -1299,9 +1300,9 @@ CDN:
     # fontawesome:
     # flickr_justified_gallery_js:
     # flickr_justified_gallery_css:
-    # aplayer_css:
-    # aplayer_js:
-    # meting_js:
+    aplayer_css: https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css
+    aplayer_js: https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js
+    meting_js: https://cdn.jsdelivr.net/npm/meting@2.0.1/dist/Meting.min.js
     meting_api: http://42.193.149.44/music-api/api?server=:server&type=:type&id=:id&r=:r&cookie=:auth
     # prismjs_js:
     # prismjs_lineNumber_js:

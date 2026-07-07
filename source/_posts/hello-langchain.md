@@ -1,5 +1,5 @@
 ---
-title: LangChain 教程 01 — Hello LangChain：模型调用入门
+title: "LangChain 笔记：第一次把模型接进 Python"
 abbrlink: hello-langchain
 author: Soar
 date: 2026-06-28 00:00:00
@@ -13,194 +13,118 @@ tags:
   - OpenAI
   - GPT
   - ChatOpenAI
-  - 教程
+  - 笔记
 cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
 ---
 
-## 📋 本课知识点
+最近重新整理了一下 LangChain 的基础用法。它给我的感觉不是“又一个聊天接口封装”，而是把模型、消息、提示词、工具和后续流程放进同一套表达方式里。
 
-1. **LangChain 是什么**：一个用于构建 LLM 应用的开源框架
-2. **如何配置 API Key**（通过环境变量）
-3. **ChatOpenAI 模型的基本使用**
-4. `invoke()` 同步调用、`stream()` 流式输出、`batch()` 批量调用
-5. LangChain 的消息类型：`SystemMessage` / `HumanMessage` / `AIMessage`
+这篇先记最朴素的一部分：如何在 Python 里把聊天模型跑起来，以及 `invoke`、`stream`、`batch` 这几个调用方式分别适合什么场景。
 
 ---
 
-## 🔧 前置准备
+## 环境记录
 
 ```bash
 pip install langchain langchain-core langchain-openai
 ```
 
-### 运行方式
+本地测试时，我习惯把 Key 放在环境变量里：
 
 ```bash
-# Windows CMD
-set OPENAI_API_KEY=sk-xxxxx
-
 # Windows PowerShell
 $env:OPENAI_API_KEY = "sk-xxxxx"
-
-# 然后运行
-python 01_hello_langchain.py
 ```
 
----
-
-## 1. 配置 API Key
+代码里只做一个轻量检查：
 
 ```python
 import os
 
 if not os.environ.get("OPENAI_API_KEY"):
-    print("⚠️  请先设置环境变量 OPENAI_API_KEY")
-    exit(0)
+    raise RuntimeError("先设置 OPENAI_API_KEY")
 ```
 
-LangChain 会自动从环境变量 `OPENAI_API_KEY` 读取密钥。
+这样项目代码里不会出现密钥，也方便以后切换部署环境。
 
 ---
 
-## 2. 创建模型实例
+## 最小模型调用
 
 ```python
 from langchain_openai import ChatOpenAI
 
 model = ChatOpenAI(
-    model="gpt-4o-mini",   # 模型名称
-    temperature=0.7,        # 0=确定性强，1=创造力强
+    model="gpt-4o-mini",
+    temperature=0.7,
 )
-```
 
-| 参数 | 说明 | 取值 |
-|------|------|------|
-| `model` | 指定使用的模型 | `gpt-4o-mini`（性价比最高） |
-| `temperature` | 控制输出随机性 | `0` → 确定性强，`1` → 创造力强 |
-
----
-
-## 3. invoke() — 最基础的调用方式
-
-```python
 response = model.invoke("用一句话解释什么是机器学习。")
-
-print(f"返回类型: {type(response).__name__}")  # AIMessage
-print(f"回复内容: {response.content}")           # 纯文本回复
+print(response.content)
 ```
 
-- `invoke()` 是 LangChain 中最核心的方法
-- 返回 `AIMessage` 对象，`.content` 属性包含回复文本
+第一次跑通以后，最值得注意的不是返回文本本身，而是返回值类型：它是一个 `AIMessage`。这意味着后面可以继续读取元信息、消息 ID、token 使用情况等内容。
 
 ---
 
-## 4. 使用消息列表（SystemMessage / HumanMessage）
+## 消息比纯字符串更清楚
+
+直接传字符串当然方便，但正式一点的场景里，我更喜欢用消息列表：
 
 ```python
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 
 messages = [
-    SystemMessage(content="你是一位中国古代诗人，请用文言文风格回答。"),
-    HumanMessage(content="今天天气真好，想写一首关于春天的诗。"),
+    SystemMessage(content="你是一名耐心的技术笔记作者。"),
+    HumanMessage(content="解释一下 LangChain 的消息类型。"),
 ]
 
 response = model.invoke(messages)
 print(response.content)
 ```
 
-| 消息类型 | 作用 |
-|----------|------|
-| `SystemMessage` | 设定 AI 的角色/行为规则 |
-| `HumanMessage` | 用户输入的问题 |
-| `AIMessage` | AI 的回复 |
+`SystemMessage` 像是写给模型的角色设定，`HumanMessage` 是用户输入。把两者分开后，提示词结构会更清爽。
 
 ---
 
-## 5. stream() — 流式输出
+## 三种调用方式的感觉
+
+`invoke()` 最直接，适合一次完整问答：
+
+```python
+response = model.invoke("写一句关于秋天的短句。")
+print(response.content)
+```
+
+`stream()` 更适合需要边生成边显示的地方，比如网页里的打字效果：
 
 ```python
 for chunk in model.stream("用三句话介绍杭州西湖。"):
     print(chunk.content, end="", flush=True)
 ```
 
-- `stream()` 返回迭代器，逐个输出 token
-- `end=""` 让每个 chunk 紧挨着输出
-- `flush=True` 实现"打字机效果"
-
----
-
-## 6. batch() — 批量调用
+`batch()` 适合一组相似任务：
 
 ```python
 questions = [
     "1 + 1 = ?",
     "法国的首都是哪里？",
-    "请用英文翻译：'今天天气真好'",
+    "把'今天天气真好'翻译成英文。",
 ]
 
 responses = model.batch(questions)
 
-for q, r in zip(questions, responses):
-    print(f"问: {q}")
-    print(f"答: {r.content}")
+for item in responses:
+    print(item.content)
 ```
 
-- `batch()` 一次性发送多个请求，提高效率
-- 返回列表，每个元素对应一个 `AIMessage`
+这三个方法放在一起看，LangChain 的调用模型其实很统一：单次、流式、批量，只是消费结果的方式不同。
 
 ---
 
-## 7. AIMessage 的完整结构
+## 我暂时的理解
 
-```python
-response = model.invoke("说一个字：好")
+LangChain 的入门点不难，真正需要慢慢理解的是“统一接口”背后的价值。
 
-print(f"类型:     {type(response)}")             # <class 'langchain_core.messages.ai.AIMessage'>
-print(f"内容:     {response.content}")            # 回复的纯文本
-print(f"ID:       {response.id}")                # 消息唯一标识符
-print(f"元数据:   {response.response_metadata}")  # token 用量、模型名称等
-```
+当应用里只有一个模型调用时，直接调 SDK 也没问题；但当后面要接 Prompt 模板、结构化输出、RAG、工具调用和工作流时，提前用 LangChain 的消息和链式表达，会让代码更容易长下去。
 
-**获取 token 用量：**
-
-```python
-usage = response.response_metadata.get("token_usage", {})
-if usage:
-    print(f"输入: {usage.get('prompt_tokens')} tokens")
-    print(f"输出: {usage.get('completion_tokens')} tokens")
-```
-
----
-
-## 8. temperature 参数对比
-
-```python
-model_deterministic = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-model_creative     = ChatOpenAI(model="gpt-4o-mini", temperature=1.5)
-
-prompt = "写一句话形容秋天的落叶。"
-
-r1 = model_deterministic.invoke(prompt)  # 几乎每次相同
-r2 = model_creative.invoke(prompt)       # 每次可能不同
-```
-
-| temperature | 特点 | 适用场景 |
-|-------------|------|----------|
-| `0` | 确定性强，回答几乎一致 | 数学、代码、事实问答 |
-| `1` | 创意性强，每次不同 | 写作、头脑风暴 |
-
----
-
-## 🎉 总结
-
-| 方法 | 用途 | 特点 |
-|------|------|------|
-| `invoke()` | 单次同步调用 | 最基础，等全部生成完再返回 |
-| `stream()` | 流式输出 | 逐 token 返回，打字机效果 |
-| `batch()` | 批量调用 | 多个请求并发，等全部完成返回 |
-
-| 消息类型 | 角色 |
-|----------|------|
-| `SystemMessage` | 系统指令，设定 AI 角色 |
-| `HumanMessage` | 用户消息 |
-| `AIMessage` | AI 回复 |

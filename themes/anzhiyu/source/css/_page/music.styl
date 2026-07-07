@@ -84,6 +84,8 @@ if hexo-config('nav_music.enable') == false
   #anMusicSearchBox
     display: flex
     align-items: center
+    width: 60%
+    box-sizing: border-box
     margin-bottom: 6px
     padding: 0 25px 0 0
     position: relative
@@ -165,17 +167,25 @@ if hexo-config('nav_music.enable') == false
               color #fff
 
           .aplayer-lrc
-            height 800%
+            height 300px
+            overflow hidden
             margin-top 10px
-            mask-image linear-gradient(to bottom, #000, #000, #000, #000, #000, #000, #000, #000, #000, #000, #0000, #0000)
+            mask-image linear-gradient(to bottom, #0000, #000, #000, #000, #000, #0000)
+            .aplayer-lrc-contents
+              transition transform .35s ease
             p
               font-size 20px
-              line-height: 20px !important;
-              height: 20px !important;
+              line-height: 24px !important;
+              min-height: 24px !important;
+              height: auto !important;
               margin: 20px 0 !important;
-              color #fff
+              color rgba(255, 255, 255, .48)
+              transition color .25s ease, transform .25s ease
               &.aplayer-lrc-current {
                 min-height: 20px;
+                color #fff
+                transform scale(1.03)
+                font-weight 700
               }
             &::after, &::before
               display none
@@ -257,6 +267,7 @@ if hexo-config('nav_music.enable') == false
             &:hover
               background #ffffff33
               border-radius 6px
+              cursor pointer
             &.aplayer-list-light
               background #ffffff33
               border-radius 6px
@@ -508,6 +519,7 @@ if hexo-config('nav_music.enable') == false
                   top -90px
 
     #anMusicSearchBox
+      width: auto
       margin: 6px 10px
       padding: 0 10px 0 0
       #anMusicSearchInput

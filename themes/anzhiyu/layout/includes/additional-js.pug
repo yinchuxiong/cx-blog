@@ -191,14 +191,14 @@ div
   != partial("includes/third-party/chat/index", {}, { cache: true })
 
   if theme.aplayerInject && theme.aplayerInject.enable
-    if theme.pjax.enable || theme.aplayerInject.per_page
+    if theme.pjax.enable || theme.aplayerInject.per_page || theme.nav_music.enable || theme.nav_music.console_widescreen_music
       include ./third-party/aplayer.pug
     else if page.aplayer
       include ./third-party/aplayer.pug
 
-      //- meting-js 仅在音乐馆页面加载（悬浮球用 NavMusic 直接控制 APlayer）
-      if is_current("/music/")
-        script(src=url_for(theme.asset.meting_js))
+    //- meting-js 仅在音乐馆页面加载（悬浮球用 NavMusic 直接控制 APlayer）
+    if is_current("/music/")
+      script(src=url_for(theme.asset.meting_js))
 
   if theme.pjax.enable
     != partial("includes/third-party/pjax", {}, { cache: true })

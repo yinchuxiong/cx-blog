@@ -3,6 +3,8 @@
   width: 100%;
   height: 76%;
   background: var(--anzhiyu-card-bg);
+  background-size: cover;
+  background-position: center;
   margin-bottom: 0.5rem;
   border: var(--style-border);
   border-radius: 12px;
@@ -13,6 +15,16 @@
   overflow: hidden;
   transition: 0.3s;
   will-change: transform;
+  .banners-title
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    text-shadow: 0 8px 24px rgba(0, 0, 0, .26);
+    transition: opacity .2s ease;
+  .banners-title-big
+    color: #fff;
+  .banners-title-small
+    color: rgba(255, 255, 255, .82);
   &:hover
     box-shadow: var(--anzhiyu-shadow-main);
     #random-hover
@@ -48,10 +60,24 @@
     font-size: 60px;
     .bannerText
       display: flex
-      align-items: center
+      flex-direction: column
+      align-items: flex-start
+      font-weight: 800
+      line-height: 1.08
+      letter-spacing: 0
+      text-shadow: 0 10px 30px rgba(0, 0, 0, .28)
+      .bannerText-title
+        font-size: 60px
+      .bannerText-subtitle
+        font-size: 44px
+        margin-top: 10px
+        opacity: .88
     i
       font-size: 80px;
       margin-left: 10px;
       line-height: 1;
+
+#random-banner:hover .banners-title
+  opacity: 0
   +maxWidth1200()
     display: none;
