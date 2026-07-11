@@ -1,19 +1,11 @@
----
-title: "LangGraph 笔记：持久化、记忆和人工参与"
+title: LangGraph 笔记：持久化、记忆和人工参与
 abbrlink: langgraph-persistence-memory-hitl-notes
 author: Soar
+categories: []
+tags: []
+cover: >-
+  https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langgraph-persistence-memory-hitl-notes.png
 date: 2026-07-05 11:20:00
-categories:
-  - langgraph
-tags:
-  - LangGraph
-  - Checkpoint
-  - Memory
-  - Human-in-the-loop
-  - Thread
-  - Python
-  - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
 ---
 
 LangGraph 中文站里最打动我的不是“图”，而是持久化。

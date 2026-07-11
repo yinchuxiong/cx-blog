@@ -12,7 +12,7 @@ tags:
   - ReAct
   - Python
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langchain-agents-tools-notes.png'
 ---
 
 整理 Agent 和工具调用这部分时，我重新想了一下 Chain 和 Agent 的区别。

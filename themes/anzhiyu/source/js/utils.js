@@ -18,6 +18,7 @@ var NavMusic = (function () {
 
   // DOM 缓存
   var $coverImg, $title, $artist, $progressPlayed;
+  var $liquidFill, $idleLyric, $idleSong;
   var $playBtn, $lyricPanel, $lyricInner, $playlistPanel, $playlistList, $playlistCount;
   var $floatBar;
 
@@ -186,6 +187,92 @@ var NavMusic = (function () {
     $playBtn.title = playing ? "暂停" : "播放";
   }
 
+  function cssUrl(value) {
+    return 'url("' + String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '")';
+  }
+
+  function toRgb(sample) {
+    return "rgb(" + sample[0] + ", " + sample[1] + ", " + sample[2] + ")";
+  }
+
+  function mixRgb(a, b, weight) {
+    return [
+      Math.round(a[0] * (1 - weight) + b[0] * weight),
+      Math.round(a[1] * (1 - weight) + b[1] * weight),
+      Math.round(a[2] * (1 - weight) + b[2] * weight),
+    ];
+  }
+
+  function sampleCoverPalette(src) {
+    if (!src) return;
+    var img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = function () {
+      try {
+        var canvas = document.createElement("canvas");
+        var size = 24;
+        canvas.width = size;
+        canvas.height = size;
+        var ctx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, size, size);
+        var data = ctx.getImageData(0, 0, size, size).data;
+        var left = [0, 0, 0];
+        var right = [0, 0, 0];
+        var leftCount = 0;
+        var rightCount = 0;
+        for (var y = 0; y < size; y++) {
+          for (var x = 0; x < size; x++) {
+            var idx = (y * size + x) * 4;
+            if (data[idx + 3] < 24) continue;
+            var target = x < size / 2 ? left : right;
+            target[0] += data[idx];
+            target[1] += data[idx + 1];
+            target[2] += data[idx + 2];
+            if (x < size / 2) leftCount++;
+            else rightCount++;
+          }
+        }
+        if (!leftCount || !rightCount || !$floatBar) return;
+        left = left.map(function (v) { return Math.round(v / leftCount); });
+        right = right.map(function (v) { return Math.round(v / rightCount); });
+        var dark = [18, 22, 32];
+        $floatBar.style.setProperty("--nm-cover-color-a", toRgb(mixRgb(left, dark, 0.2)));
+        $floatBar.style.setProperty("--nm-cover-color-b", toRgb(mixRgb(right, dark, 0.16)));
+      } catch (e) {}
+    };
+    img.src = src;
+  }
+
+  function updateCoverAtmosphere(song) {
+    if (!$floatBar || !song) return;
+    var cover = song.cover || "";
+    if (!cover) {
+      $floatBar.style.removeProperty("--nm-cover-bg");
+      $floatBar.style.removeProperty("--nm-cover-color-a");
+      $floatBar.style.removeProperty("--nm-cover-color-b");
+      return;
+    }
+    $floatBar.style.setProperty("--nm-cover-bg", cssUrl(cover));
+    sampleCoverPalette(cover);
+  }
+
+  function ensureIdleView() {
+    var floatBar = container && container.querySelector(".nm-float");
+    if (!floatBar || floatBar.querySelector(".nm-idle-view")) return;
+
+    var idleView = document.createElement("div");
+    idleView.className = "nm-idle-view";
+    idleView.setAttribute("aria-hidden", "true");
+    idleView.innerHTML =
+      '<div class="nm-liquid-fill"></div>' +
+      '<div class="nm-idle-text">' +
+        '<div class="nm-idle-lyric">未在播放</div>' +
+        '<div class="nm-idle-song"></div>' +
+      '</div>';
+    floatBar.appendChild(idleView);
+  }
+
   function updateLyricDOM(lrcText) {
     lrcParsed = parseLrc(lrcText);
     if (!$lyricInner) return;
@@ -196,6 +283,35 @@ var NavMusic = (function () {
     } else {
       $lyricInner.innerHTML = '<p class="nm-no-lyric">纯音乐，请欣赏</p>';
     }
+    updateIdleLyric();
+  }
+
+  function updateIdleSong(song) {
+    if (!$idleSong) return;
+    if (!song) {
+      $idleSong.textContent = "";
+      return;
+    }
+    $idleSong.textContent = song.name + (song.artist ? " - " + song.artist : "");
+  }
+
+  function updateIdleLyric(currentTime) {
+    if (!$idleLyric) return;
+    if (!lrcParsed.length) {
+      $idleLyric.textContent = playing ? "听见此刻" : "未在播放";
+      return;
+    }
+
+    var time = typeof currentTime === "number"
+      ? currentTime
+      : (ap && ap.audio ? ap.audio.currentTime || 0 : 0);
+    var idx = -1;
+    for (var i = 0; i < lrcParsed.length; i++) {
+      if (lrcParsed[i].time <= time) idx = i;
+      else break;
+    }
+    var line = idx >= 0 ? lrcParsed[idx].text : lrcParsed[0].text;
+    $idleLyric.textContent = line || (playing ? "听见此刻" : "未在播放");
   }
 
   function updateSongInfo(index) {
@@ -210,12 +326,15 @@ var NavMusic = (function () {
       $title.title = song.name;
     }
     if ($artist) $artist.textContent = song.artist;
+    updateIdleSong(song);
+    updateCoverAtmosphere(song);
 
     // 歌词：先尝试已有数据，否则通过 API 获取
     if (song.lrc) {
       updateLyricDOM(song.lrc);
     } else {
       $lyricInner && ($lyricInner.innerHTML = '<p class="nm-no-lyric">加载歌词中…</p>');
+      if ($idleLyric) $idleLyric.textContent = "Loading lyrics...";
       lrcParsed = [];
       if (song.id) {
         fetchLyric(song.id).then(function (lyricText) {
@@ -236,6 +355,8 @@ var NavMusic = (function () {
     var dur = ap.audio.duration || 0;
     var pct = dur > 0 ? (cur / dur) * 100 : 0;
     if ($progressPlayed) $progressPlayed.style.width = pct + "%";
+    if ($liquidFill) $liquidFill.style.width = pct + "%";
+    if ($floatBar) $floatBar.style.setProperty("--nm-progress", pct + "%");
   }
 
   function updateLyricHighlight(currentTime) {
@@ -250,6 +371,7 @@ var NavMusic = (function () {
     for (var i = 0; i < lines.length; i++) {
       lines[i].classList.toggle("nm-lrc-active", i === idx);
     }
+    updateIdleLyric(currentTime);
     if (idx >= 0 && lines[idx] && lyricVisible) {
       var panel = $lyricPanel;
       if (panel) {
@@ -295,6 +417,7 @@ var NavMusic = (function () {
       if (consoleMusic) consoleMusic.classList.remove("on");
     }
     updatePlayBtn();
+    updateIdleLyric();
   }
 
   // ---- 播放控制 ----
@@ -472,6 +595,7 @@ var NavMusic = (function () {
 
     var aplayerEl = document.getElementById("nav-music-aplayer");
     if (!aplayerEl) return;
+    ensureIdleView();
 
     // 缓存 DOM
     $coverImg = container.querySelector(".nm-cover-img");
@@ -480,6 +604,9 @@ var NavMusic = (function () {
     $progressPlayed = container.querySelector(".nm-progress-played");
     $lyricPanel = container.querySelector(".nm-lyric-panel");
     $lyricInner = container.querySelector(".nm-lyric-inner");
+    $liquidFill = container.querySelector(".nm-liquid-fill");
+    $idleLyric = container.querySelector(".nm-idle-lyric");
+    $idleSong = container.querySelector(".nm-idle-song");
     $playlistPanel = container.querySelector(".nm-playlist-panel");
     $playlistList = container.querySelector(".nm-playlist-list");
     $playlistCount = container.querySelector(".nm-playlist-count");
@@ -520,9 +647,7 @@ var NavMusic = (function () {
         var now = Date.now();
         if (now - lastLyricUpdate > 200) {
           lastLyricUpdate = now;
-          if (lyricVisible) {
-            updateLyricHighlight(ap.audio.currentTime);
-          }
+          updateLyricHighlight(ap.audio.currentTime);
         }
       });
 

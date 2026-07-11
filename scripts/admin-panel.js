@@ -54,7 +54,7 @@ hexo.extend.filter.register('server_middleware', function (app) {
   // Normalize root: default is '/', treat '/' as empty for path construction
   var root = hexo.config.root || '';
   if (root === '/') root = '';
-  root = root.replace(/\/+$/, ''); // remove trailing slashes
+  root = root.replace(/^\/+|\/+$/g, ''); // remove leading/trailing slashes
   const adminBase = (root ? '/' + root : '') + '/admin';
   const adminBaseSlash = adminBase + '/';
 
@@ -85,6 +85,14 @@ hexo.extend.filter.register('server_middleware', function (app) {
     if (url.indexOf(adminBaseSlash) !== 0 && url !== adminBase) return next();
     if (url.indexOf(adminBaseSlash + 'api/') === 0) return next();
     if (url.indexOf(adminBaseSlash + 'login') === 0) return next();
+
+    if (url === adminBase) {
+      res.writeHead(302, {
+        Location: adminBaseSlash + (parsedUrl.search || ''),
+      });
+      res.end();
+      return;
+    }
 
     // Extract relative path
     var relativePath = url.slice(adminBaseSlash.length) || '';

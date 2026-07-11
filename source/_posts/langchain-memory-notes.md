@@ -12,7 +12,7 @@ tags:
   - ChatBot
   - Token
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langchain-memory-notes.png'
 ---
 
 整理对话记忆这部分时，我意识到 Memory 不是简单地“把历史消息存起来”。

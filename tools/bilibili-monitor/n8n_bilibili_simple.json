@@ -1,0 +1,203 @@
+{
+  "name": "B站UP主视频监控 → 飞书（纯内置节点，无需Python）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "triggerAtHour": 8 }]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-2200, 400],
+      "id": "schedule",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"uids\": [\n    { \"uid\": \"123456\", \"label\": \"UP主1\" },\n    { \"uid\": \"789012\", \"label\": \"UP主2\" }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1820, 400],
+      "id": "uid-list",
+      "name": "Set: UP主UID列表"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "uids",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [-1640, 400],
+      "id": "split-uids",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "url": "=https://rsshub.app/bilibili/user/video/{{ $json.uid }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [-1460, 400],
+      "id": "rss-read",
+      "name": "RSS: B站视频"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-date",
+              "leftValue": "={{ $json.isoDate }}",
+              "rightValue": "={{ new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "after"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [-1260, 400],
+      "id": "filter-24h",
+      "name": "Filter: 24小时内"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "标题",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "f2",
+              "name": "日期",
+              "value": "={{ $json.isoDate }}",
+              "type": "string"
+            },
+            {
+              "id": "f3",
+              "name": "链接",
+              "value": "={{ $json.link }}",
+              "type": "string"
+            },
+            {
+              "id": "f4",
+              "name": "来源",
+              "value": "=B站视频",
+              "type": "string"
+            },
+            {
+              "id": "f5",
+              "name": "板块",
+              "value": "=B站更新",
+              "type": "string"
+            },
+            {
+              "id": "f6",
+              "name": "内容",
+              "value": "={{ $json.content || $json.contentSnippet || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1060, 400],
+      "id": "edit-fields",
+      "name": "Set: 格式化字段"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 合并所有视频，写飞书多维表格 + 生成日报\nconst items = $input.all();\n\nif (items.length === 0) {\n  return [];\n}\n\n// 为每条输出标准格式\nconst results = [];\nconst today = new Date().toISOString().slice(0, 10);\n\nfor (const item of items) {\n  const d = item.json;\n  // 生成简单摘要（标题截取前80字作为内容）\n  const summary = d[\"内容\"] \n    ? d[\"内容\"].substring(0, 120) \n    : d[\"标题\"].substring(0, 120);\n  \n  results.push({\n    json: {\n      标题: d[\"标题\"],\n      内容: summary,\n      日期: d[\"日期\"],\n      链接: d[\"链接\"],\n      来源: d[\"来源\"],\n      板块: d[\"板块\"]\n    }\n  });\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-860, 400],
+      "id": "code-format",
+      "name": "Code: 数据整理"
+    },
+    {
+      "parameters": {
+        "resource": "bitable",
+        "operation": "bitable:table:record:add",
+        "app_toke": "BlAiwkRq1iBcTYkE7hScyJ3Ynwg",
+        "table_id": "tblLiGKKRM2XOM3L",
+        "body": "={\"fields\":{\n  \"标题\":\"{{ $json['标题'] }}\",\n  \"内容\":\"{{ $json['内容'] }}\",\n  \"日期\":\"{{ $json['日期'] }}\",\n  \"链接\": {\n    \"text\": \"视频链接\",\n    \"link\": \"{{ $json['链接'].replace(/\\n/g, '') }}\"\n  },\n  \"来源\":\"{{ $json['来源'] }}\",\n  \"板块\":\"{{ $json['板块'] }}\"\n}}"
+      },
+      "type": "n8n-nodes-feishu-lite.feishuNode",
+      "typeVersion": 1,
+      "position": [-660, 400],
+      "id": "feishu-write",
+      "name": "Feishu: 写入多维表格",
+      "credentials": {
+        "feishuCredentialsApi": {
+          "id": "A45UlAVxbXmsWakm",
+          "name": "Feishu account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 生成日报 Markdown\nconst items = $input.all();\n\nif (items.length === 0) {\n  return [{ json: { msg: \"今日无B站更新\" } }];\n}\n\nconst today = new Date().toISOString().slice(0, 10);\nlet md = `# ${today} B站更新日报\\n\\n`;\n\nfor (const item of items) {\n  const d = item.json;\n  md += `**${d[\"标题\"]}**\\n`;\n  md += `${d[\"链接\"]}\\n\\n`;\n}\n\nreturn [{ json: { msg: md.trim() } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-460, 400],
+      "id": "code-report",
+      "name": "Code: 日报"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/你的webhook地址",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"msg_type\":\"text\",\"content\":{\"text\":\"{{ $json.msg }}\"}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-260, 400],
+      "id": "http-bot",
+      "name": "HTTP: 飞书机器人推送"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": { "main": [[{ "node": "Set: UP主UID列表", "type": "main", "index": 0 }]] },
+    "Set: UP主UID列表": { "main": [[{ "node": "Split Out", "type": "main", "index": 0 }]] },
+    "Split Out": { "main": [[{ "node": "RSS: B站视频", "type": "main", "index": 0 }]] },
+    "RSS: B站视频": { "main": [[{ "node": "Filter: 24小时内", "type": "main", "index": 0 }]] },
+    "Filter: 24小时内": { "main": [[{ "node": "Set: 格式化字段", "type": "main", "index": 0 }]] },
+    "Set: 格式化字段": { "main": [[{ "node": "Code: 数据整理", "type": "main", "index": 0 }]] },
+    "Code: 数据整理": { "main": [
+      [{ "node": "Feishu: 写入多维表格", "type": "main", "index": 0 }],
+      [{ "node": "Code: 日报", "type": "main", "index": 0 }]
+    ]},
+    "Code: 日报": { "main": [[{ "node": "HTTP: 飞书机器人推送", "type": "main", "index": 0 }]] }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" },
+  "id": "bilibili-simple",
+  "tags": []
+}

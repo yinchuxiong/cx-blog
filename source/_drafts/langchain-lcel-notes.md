@@ -1,8 +1,6 @@
----
-title: "LangChain 笔记：LCEL 这条管道怎么想"
+title: LangChain 笔记：LCEL 这条管道怎么想
 abbrlink: langchain-lcel-notes
 author: Soar
-date: 2026-07-03 09:20:00
 categories:
   - langchain
 tags:
@@ -12,7 +10,9 @@ tags:
   - Python
   - Chain
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: >-
+  https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langchain-lcel-notes.png
+date: 2026-07-03 09:20:00
 ---
 
 整理 LCEL 时，最有用的心智模型是：LangChain 里很多东西都可以看成 `Runnable`。

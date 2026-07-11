@@ -26,8 +26,12 @@
 
 /* ---- 主悬浮条 ---- */
 .nm-float {
+  --nm-cover-bg: none;
+  --nm-cover-color-a: var(--anzhiyu-main);
+  --nm-cover-color-b: #27d6bd;
   display: flex;
   align-items: center;
+  position: relative;
   height: 40px;
   min-width: 200px;
   max-width: 280px;
@@ -41,6 +45,56 @@
   user-select: none;
   transition: border-color 0.4s, box-shadow 0.4s;
   overflow: hidden;
+}
+
+.nm-float::before,
+.nm-float::after {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.nm-float::before {
+  background-image: var(--nm-cover-bg);
+  background-position: center;
+  background-size: cover;
+  filter: blur(14px) saturate(1.4);
+  transform: scale(1.18);
+}
+
+.nm-float::after {
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--nm-cover-color-a), transparent 28%), transparent 50%),
+    radial-gradient(circle at 88% 80%, color-mix(in srgb, var(--nm-cover-color-b), transparent 24%), transparent 54%),
+    linear-gradient(100deg, rgba(18, 22, 32, 0.72), rgba(18, 22, 32, 0.36) 52%, rgba(18, 22, 32, 0.72));
+}
+
+#nav-music.playing .nm-float::before {
+  opacity: 0.62;
+}
+
+#nav-music.playing .nm-float::after {
+  opacity: 1;
+}
+
+#nav-music.playing:has(.nm-idle-view):not(:hover) .nm-cover,
+#nav-music.playing:has(.nm-idle-view):not(:hover) .nm-body,
+#nav-music.playing:has(.nm-idle-view):not(:hover) .nm-controls {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+}
+
+#nav-music.playing:has(.nm-idle-view):hover .nm-cover,
+#nav-music.playing:has(.nm-idle-view):hover .nm-body,
+#nav-music.playing:has(.nm-idle-view):hover .nm-controls {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 #nav-music.playing .nm-float {
@@ -67,7 +121,8 @@
   cursor: pointer;
   position: relative;
   border: 1.5px solid rgba(255, 255, 255, 0.15);
-  transition: border-color 0.3s;
+  transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.3s;
+  z-index: 1;
 }
 .nm-cover:hover { border-color: rgba(255, 255, 255, 0.4); }
 #nav-music.playing .nm-cover { border-color: rgba(255, 255, 255, 0.3); }
@@ -108,6 +163,9 @@
   padding: 0 8px;
   cursor: pointer;
   overflow: hidden;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .nm-info {
@@ -189,6 +247,100 @@
   gap: 1px;
   padding-right: 4px;
   flex-shrink: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- 离开鼠标时的液体胶囊歌词 ---- */
+.nm-idle-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  transition: opacity 0.25s ease;
+  z-index: 2;
+}
+
+#nav-music.playing:not(:hover) .nm-idle-view {
+  opacity: 1;
+}
+
+.nm-liquid-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  min-width: 18px;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--nm-cover-color-a), transparent 4%), color-mix(in srgb, var(--nm-cover-color-b), transparent 2%)),
+    var(--nm-cover-bg);
+  background-position: center;
+  background-size: cover;
+  box-shadow: 10px 0 24px color-mix(in srgb, var(--nm-cover-color-b), transparent 62%);
+  transition: width 0.3s linear;
+  overflow: hidden;
+}
+
+.nm-liquid-fill::before,
+.nm-liquid-fill::after {
+  content: "";
+  position: absolute;
+  top: -18px;
+  right: -24px;
+  width: 74px;
+  height: 74px;
+  border-radius: 42%;
+  background: rgba(255, 255, 255, 0.23);
+  animation: nmLiquidWave 5.5s linear infinite;
+}
+
+.nm-liquid-fill::after {
+  top: -14px;
+  right: -34px;
+  border-radius: 46%;
+  background: rgba(255, 255, 255, 0.14);
+  animation-duration: 7s;
+  animation-direction: reverse;
+}
+
+@keyframes nmLiquidWave {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.nm-idle-text {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  width: 100%;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+}
+
+.nm-idle-lyric,
+.nm-idle-song {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nm-idle-lyric {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.nm-idle-song {
+  margin-top: 2px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.74);
+  line-height: 1.15;
 }
 
 .nm-btn {

@@ -12,7 +12,7 @@ tags:
   - Python
   - 监控
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langchain-streaming-callbacks-notes.png'
 ---
 
 Streaming 和 Callbacks 这部分更偏工程化。它解决的不是“模型会不会回答”，而是“回答怎么展示、怎么监控、怎么调试”。

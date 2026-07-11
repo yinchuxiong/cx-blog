@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blog Note Cover PicGo"
+  short_description: "Generate referenced blog covers and apply PicGo CDN links."
+  default_prompt: "Use $blog-note-cover-picgo to generate cover images for note posts from provided reference images, upload them with PicGo, and update the blog cover fields."

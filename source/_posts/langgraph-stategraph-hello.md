@@ -13,7 +13,7 @@ tags:
   - StateGraph
   - 工作流
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langgraph-stategraph-hello.png'
 ---
 
 看 LangGraph 的时候，我第一反应是：它不是为了把简单事情写复杂，而是为了让已经复杂的 Agent 流程有地方安放。

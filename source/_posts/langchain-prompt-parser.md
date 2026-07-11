@@ -14,7 +14,7 @@ tags:
   - LCEL
   - 结构化输出
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langchain-prompt-parser.png'
 ---
 
 整理 Prompt 和输出解析这部分时，我感觉 LangChain 的这块可以压成一句话：

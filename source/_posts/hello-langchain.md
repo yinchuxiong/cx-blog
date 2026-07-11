@@ -14,7 +14,7 @@ tags:
   - GPT
   - ChatOpenAI
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/hello-langchain.png'
 ---
 
 最近重新整理了一下 LangChain 的基础用法。它给我的感觉不是“又一个聊天接口封装”，而是把模型、消息、提示词、工具和后续流程放进同一套表达方式里。

@@ -23,6 +23,6 @@ echo   按 Ctrl+C 停止服务器
 echo.
 
 set NODE_TLS_REJECT_UNAUTHORIZED=0
-call npx hexo server -p 4000
+call npx hexo server -p 4006
 
 pause

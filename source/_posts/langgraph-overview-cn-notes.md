@@ -12,7 +12,7 @@ tags:
   - Python
   - 预构建智能体
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langgraph-overview-cn-notes.png'
 ---
 
 重新梳理 LangGraph 文档后，我对它的印象更清楚了。它不只是“用图来写 Agent 流程”，而是一个面向长时间运行、有状态智能体的底层编排框架。

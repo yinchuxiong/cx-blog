@@ -12,7 +12,7 @@ tags:
   - Agent
   - Command
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langgraph-streaming-multi-agent-notes.png'
 ---
 
 这篇把中文站里的流式传输和多智能体放在一起记。它们看起来是两件事，但都指向同一个问题：复杂 Agent 不能只是“最后给一个答案”，中间发生了什么也很重要。

@@ -62,6 +62,20 @@ default_category: uncategorized
 category_map:
 tag_map:
 
+# Extra front matter fields that hexo-admin should preserve when editing.
+metadata:
+  abbrlink:
+  cover:
+  top_img:
+  description:
+  keywords:
+  comments: true
+  highlight_shrink:
+  location:
+  swiper_index:
+  copyright_author:
+  copyright_url:
+
 # Date / Time format
 date_format: YYYY-MM-DD
 time_format: HH:mm:ss

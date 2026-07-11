@@ -13,7 +13,7 @@ tags:
   - 条件分支
   - 工作流
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langgraph-router-workflow.png'
 ---
 
 继续看 LangGraph，这次记一下条件分支。

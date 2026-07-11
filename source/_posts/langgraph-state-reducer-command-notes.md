@@ -13,7 +13,7 @@ tags:
   - Send
   - Python
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langgraph-state-reducer-command-notes.png'
 ---
 
 这篇整理中文站里图 API 的几个底层概念。之前写 StateGraph 时，我只是把节点和边串起来；这次更清楚地意识到：LangGraph 真正需要想明白的是 State 如何更新，以及控制流应该放在哪里。

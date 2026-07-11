@@ -16,7 +16,7 @@ tags:
   - 检索增强生成
   - AI
   - 笔记
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: 'https://cdn.jsdelivr.net/gh/yinchuxiong/cx-images@master/2026/langchain-rag-first.png'
 ---
 
 这篇把文档加载、向量存储和 RAG 检索流程串起来记一下。

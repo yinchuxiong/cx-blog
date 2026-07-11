@@ -1,0 +1,319 @@
+{
+  "name": "B站UP主视频监控 → 飞书",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-2000, 400],
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "command": "python E:\\anzhiyu-blog\\scripts\\bilibili_monitor.py"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [-1640, 400],
+      "id": "execute-bilibili",
+      "name": "Execute: 获取B站视频"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 解析 Execute Command 的 stdout（JSON 数组字符串）\nconst raw = $input.first().json;\n\nlet data;\nconst stdout = raw.stdout;\nif (typeof stdout === 'string' && stdout.trim().length > 0) {\n  try {\n    data = JSON.parse(stdout);\n  } catch (e) {\n    console.error('JSON parse error:', e.message);\n    return [];\n  }\n} else if (Array.isArray(raw)) {\n  data = raw;\n} else {\n  return [];\n}\n\nif (!Array.isArray(data) || data.length === 0) {\n  console.log('没有新视频');\n  return [];\n}\n\n// 只保留有字幕的视频\nconst withSubs = data.filter(v => v[\"有字幕\"] === true);\n\nif (withSubs.length === 0) {\n  console.log('没有带字幕的新视频');\n  return [];\n}\n\nconsole.log(`获取到 ${withSubs.length} 条带字幕的新视频`);\n\n// 拆成 n8n 逐条 item\nreturn withSubs.map(item => ({ json: item }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1280, 400],
+      "id": "code-split-filter",
+      "name": "Code: 拆分 & 过滤字幕"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v4-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [-560, 600],
+      "id": "deepseek-model",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "qxh3z219eESd0CDP",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "你是一名技术内容编辑，负责对B站视频字幕提取关键信息。\n\n输入信息：\n标题：{{ $json[\"标题\"] }}\n字幕内容：{{ $json[\"内容\"] }}\n来源：{{ $json[\"来源\"] }}\n日期：{{ $json[\"日期\"] }}\n链接：{{ $json[\"链接\"] }}\n板块：{{ $json[\"板块\"] }}\n\n请对字幕内容生成一段80-120字的中文摘要，遵循以下规则：\n\n#步骤\n1. 提取视频讨论的核心话题（讲的是什么技术/工具/项目）\n2. 概括主要观点或技术结论\n3. 字幕中提到的任何开源项目名称、GitHub地址、工具名、模型名必须原文保留\n4. 如果字幕中有\"总结\"、\"核心观点\"、\"重点是\"等引导词，优先提取其后的内容\n\n#输出格式\n- 以\"摘要：\"开头\n- 一条完整通顺的中文句子，80-120字\n\n#示例输出\n\"摘要：UP主介绍了GitHub本周热门AI项目superpowers，该项目为AI Agent提供技能扩展能力，已获19万星标，核心技术栈包括Python和LangChain，对开发者构建智能体应用有重要参考价值。\"\n\n#重要约束\n- 不要凭空添加字幕中没有提到的数据、名称或链接\n- 如果字幕中确实没有提到某个信息，不要编造\n- 输出除了\"标题\"字段可以修改，其他字段严格保持和输入一致",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [-920, 400],
+      "id": "llm-summarize",
+      "name": "LLM: 视频摘要"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"标题\": \"视频原标题\",\n  \"内容\": \"摘要：这里是80-120字的中文摘要\",\n  \"日期\": \"2026-06-30T10:00:00+00:00\",\n  \"来源\": \"B站 - UP主名称\",\n  \"链接\": \"https://www.bilibili.com/video/BVxxxxxx\",\n  \"板块\": \"B站更新\",\n  \"分类\": \"视频摘要\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [-720, 600],
+      "id": "output-parser",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-title",
+              "name": "标题",
+              "value": "={{ $json.output[\"标题\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "field-content",
+              "name": "内容",
+              "value": "={{ $json.output[\"内容\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "field-date",
+              "name": "日期",
+              "value": "={{ $json.output[\"日期\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "field-link",
+              "name": "链接",
+              "value": "={{ $json.output[\"链接\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "field-source",
+              "name": "来源",
+              "value": "={{ $json.output[\"来源\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "field-section",
+              "name": "板块",
+              "value": "={{ $json.output[\"板块\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "field-category",
+              "name": "分类",
+              "value": "={{ $json.output[\"分类\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-320, 400],
+      "id": "edit-fields",
+      "name": "Format for Feishu"
+    },
+    {
+      "parameters": {
+        "resource": "bitable",
+        "operation": "bitable:table:record:add",
+        "app_toke": "BlAiwkRq1iBcTYkE7hScyJ3Ynwg",
+        "table_id": "tblLiGKKRM2XOM3L",
+        "body": "={\"fields\":{\n  \"标题\":\"{{ $json['标题'] }}\",\n  \"内容\":\"{{ $json['内容'] }}\",\n  \"日期\":\"{{ $json['日期'] }}\",\n  \"链接\": {\n    \"text\": \"视频链接\",\n    \"link\": \"{{ $json['链接'].replace(/\\n/g, '') }}\"\n  },\n  \"来源\":\"{{ $json['来源'] }}\",\n  \"板块\":\"{{ $json['板块'] }}\"\n}}"
+      },
+      "type": "n8n-nodes-feishu-lite.feishuNode",
+      "typeVersion": 1,
+      "position": [80, 400],
+      "id": "feishu-bitable",
+      "name": "Feishu: 写入多维表格",
+      "credentials": {
+        "feishuCredentialsApi": {
+          "id": "A45UlAVxbXmsWakm",
+          "name": "Feishu account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 把所有摘要合并成一篇日报推送\nconst items = $input.all();\n\nif (items.length === 0) {\n  return [{ json: { markdown: \"## 今天没有新的B站视频更新 🎬\" } }];\n}\n\nconst today = new Date().toISOString().slice(0, 10);\nlet md = `# ${today} B站 AI/开源 日报\\n\\n`;\n\n// 按来源分组\nconst groups = {};\nfor (const item of items) {\n  const source = item.json[\"来源\"] || \"B站\";\n  if (!groups[source]) groups[source] = [];\n  groups[source].push(item.json);\n}\n\nfor (const [source, entries] of Object.entries(groups)) {\n  md += `## ${source}\\n\\n`;\n  for (const e of entries) {\n    md += `**${e[\"标题\"]}**\\n`;\n    md += `${e[\"内容\"] || \"\"}\\n`;\n    md += `📺 ${e[\"链接\"] || \"\"}\\n\\n`;\n  }\n  md += \"---\\n\";\n}\n\nreturn [{ json: { markdown: md.trim() } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [80, 640],
+      "id": "code-daily-report",
+      "name": "Code: 日报拼接"
+    },
+    {
+      "parameters": {
+        "jsCode": "const markdown = $input.first().json.markdown;\n\nreturn [\n  {\n    json: {\n      msg_type: \"interactive\",\n      card: {\n        elements: [\n          {\n            tag: \"markdown\",\n            content: markdown\n          }\n        ]\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 640],
+      "id": "code-card-format",
+      "name": "Code: 飞书卡片格式"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/20e2ead8-f4ce-4379-a05e-33791dc5c6b4",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [820, 640],
+      "id": "http-feishu-bot",
+      "name": "HTTP: 飞书机器人推送"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute: 获取B站视频",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: 获取B站视频": {
+      "main": [
+        [
+          {
+            "node": "Code: 拆分 & 过滤字幕",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: 拆分 & 过滤字幕": {
+      "main": [
+        [
+          {
+            "node": "LLM: 视频摘要",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LLM: 视频摘要",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM: 视频摘要": {
+      "main": [
+        [
+          {
+            "node": "Format for Feishu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "LLM: 视频摘要",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format for Feishu": {
+      "main": [
+        [
+          {
+            "node": "Feishu: 写入多维表格",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code: 日报拼接",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: 日报拼接": {
+      "main": [
+        [
+          {
+            "node": "Code: 飞书卡片格式",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: 飞书卡片格式": {
+      "main": [
+        [
+          {
+            "node": "HTTP: 飞书机器人推送",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bilibili-monitor-v1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bilibili-to-feishu"
+  },
+  "id": "bilibili-to-feishu",
+  "tags": []
+}

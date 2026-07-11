@@ -20,6 +20,8 @@
     previewVisible: false,
     previewMode: 'desktop', // 'desktop' | 'mobile'
     previewDebounce: null,
+    usingPlainEditor: false,
+    activeMetaPost: null,
   };
 
   // ==================== DOM Refs ====================
@@ -45,6 +47,7 @@
     // Editor
     viewEditor: $('#view-editor'),
     editorTitle: $('#editor-title'),
+    editorMetaSummary: $('#editor-meta-summary'),
     editorTags: $('#editor-tags'),
     editorCategories: $('#editor-categories'),
     editorTextarea: $('#editor-textarea'),
@@ -87,6 +90,33 @@
     btnThemePreview: $('#btn-theme-preview'),
     btnThemePreviewClose: $('#btn-theme-preview-close'),
     editorBody: $('#editor-body'),
+
+    // Article properties
+    metadataPanel: $('#metadata-panel'),
+    metadataToggle: $('#metadata-toggle'),
+    editorAbbrlink: $('#editor-abbrlink'),
+    editorAuthor: $('#editor-author'),
+    editorDate: $('#editor-date'),
+    categoryChipList: $('#category-chip-list'),
+    categoryChipInput: $('#category-chip-input'),
+    tagChipList: $('#tag-chip-list'),
+    tagChipInput: $('#tag-chip-input'),
+    tagSuggestions: $('#tag-suggestions'),
+    editorCover: $('#editor-cover'),
+    coverPreview: $('#cover-preview'),
+    btnUploadCover: $('#btn-upload-cover'),
+    btnClearCover: $('#btn-clear-cover'),
+    coverFileInput: $('#cover-file-input'),
+    editorDescription: $('#editor-description'),
+    editorKeywords: $('#editor-keywords'),
+    editorComments: $('#editor-comments'),
+    editorHighlightShrink: $('#editor-highlight-shrink'),
+    editorTopImgDisabled: $('#editor-top-img-disabled'),
+    editorTopImg: $('#editor-top-img'),
+    editorLocation: $('#editor-location'),
+    editorSwiperIndex: $('#editor-swiper-index'),
+    editorCopyrightAuthor: $('#editor-copyright-author'),
+    editorCopyrightUrl: $('#editor-copyright-url'),
   };
 
   // ==================== API ====================
@@ -218,6 +248,195 @@
     } catch (err) {
       console.error('Failed to load tags/cats:', err);
     }
+  }
+
+  // ==================== Article Properties ====================
+  function asList(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map(String).filter(Boolean);
+    if (value.data && Array.isArray(value.data)) return value.data.map(String).filter(Boolean);
+    if (typeof value === 'string') {
+      return value.split(',').map(function (item) { return item.trim(); }).filter(Boolean);
+    }
+    return [];
+  }
+
+  function getKnownOptions(kind) {
+    var source = kind === 'tags' ? state.tagsCategories.tags : state.tagsCategories.categories;
+    if (!source) return [];
+    if (Array.isArray(source)) return source.map(String);
+    return Object.keys(source).map(function (key) { return String(source[key]); }).filter(Boolean);
+  }
+
+  function rawHasKey(post, key) {
+    if (!post || !post.raw) return false;
+    var split = String(post.raw).split('---');
+    var front = split.length > 2 ? split[1] : split[0];
+    return new RegExp('(^|\\n)' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*:', 'm').test(front);
+  }
+
+  function valueOrEmpty(value) {
+    if (value === null || value === undefined) return '';
+    return String(value);
+  }
+
+  function formatDateInput(value) {
+    if (!value) return '';
+    var date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    var pad = function (num) { return String(num).padStart(2, '0'); };
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+  }
+
+  function normalizeDateForSave(value) {
+    if (!value) return '';
+    return value.replace('T', ' ') + ':00';
+  }
+
+  function getChipValues(kind) {
+    var input = kind === 'tags' ? dom.editorTags : dom.editorCategories;
+    return asList(input.value);
+  }
+
+  function setChipValues(kind, values) {
+    var unique = [];
+    values.forEach(function (value) {
+      var trimmed = String(value || '').trim();
+      if (trimmed && unique.indexOf(trimmed) === -1) unique.push(trimmed);
+    });
+    var input = kind === 'tags' ? dom.editorTags : dom.editorCategories;
+    input.value = unique.join(', ');
+    renderChips(kind);
+    updateMetaSummary();
+    schedulePreviewUpdate();
+  }
+
+  function addChip(kind, value) {
+    var values = getChipValues(kind);
+    values.push(value);
+    setChipValues(kind, values);
+  }
+
+  function removeChip(kind, value) {
+    var values = getChipValues(kind).filter(function (item) { return item !== value; });
+    setChipValues(kind, values);
+  }
+
+  function renderChips(kind) {
+    var list = kind === 'tags' ? dom.tagChipList : dom.categoryChipList;
+    if (!list) return;
+    var values = getChipValues(kind);
+    list.innerHTML = values.map(function (value) {
+      return '<span class="meta-chip ' + (kind === 'categories' ? 'cat' : '') + '">' +
+        escapeHtml(value) +
+        '<button type="button" data-chip-kind="' + kind + '" data-chip-value="' + escapeHtml(value) + '" title="移除">×</button>' +
+      '</span>';
+    }).join('');
+  }
+
+  function renderSuggestions(kind, query) {
+    if (kind !== 'tags' || !dom.tagSuggestions) return;
+    var existing = getChipValues('tags');
+    var lower = (query || '').toLowerCase();
+    var options = getKnownOptions('tags')
+      .filter(function (item) { return existing.indexOf(item) === -1; })
+      .filter(function (item) { return !lower || item.toLowerCase().indexOf(lower) !== -1; })
+      .slice(0, 8);
+    dom.tagSuggestions.innerHTML = options.map(function (item) {
+      return '<button type="button" class="suggestion-chip" data-suggestion="' + escapeHtml(item) + '">' + escapeHtml(item) + '</button>';
+    }).join('');
+  }
+
+  function updateCoverPreview() {
+    var url = dom.editorCover.value.trim();
+    if (!url) {
+      dom.coverPreview.classList.remove('has-image', 'is-error');
+      dom.coverPreview.innerHTML = '<span>暂无封面</span>';
+      return;
+    }
+    dom.coverPreview.classList.add('has-image');
+    dom.coverPreview.classList.remove('is-error');
+    dom.coverPreview.innerHTML = '<img src="' + escapeHtml(url) + '" alt="封面预览"><span class="cover-preview-fallback">图片无法加载</span>';
+  }
+
+  function updateMetaSummary() {
+    if (!dom.editorMetaSummary) return;
+    var cats = getChipValues('categories');
+    var tags = getChipValues('tags');
+    var parts = [];
+    if (cats.length) parts.push(cats.join(' / '));
+    if (tags.length) parts.push(tags.length + ' 个标签');
+    if (dom.editorCover && dom.editorCover.value.trim()) parts.push('已设置封面');
+    dom.editorMetaSummary.textContent = parts.length ? parts.join(' · ') : '设置分类、标签、封面和摘要';
+  }
+
+  function syncTopImgState() {
+    if (!dom.editorTopImg || !dom.editorTopImgDisabled) return;
+    dom.editorTopImg.disabled = dom.editorTopImgDisabled.checked;
+    dom.editorTopImg.placeholder = dom.editorTopImgDisabled.checked ? '已关闭顶部图' : '默认使用封面图';
+  }
+
+  function fillMetadata(post) {
+    state.activeMetaPost = post;
+    var categories = asList(post.categories);
+    var tags = asList(post.tags);
+    dom.editorCategories.value = categories.join(', ');
+    dom.editorTags.value = tags.join(', ');
+    dom.editorAbbrlink.value = valueOrEmpty(post.abbrlink || post.slug);
+    dom.editorAuthor.value = valueOrEmpty(post.author);
+    dom.editorDate.value = formatDateInput(post.date);
+    dom.editorCover.value = valueOrEmpty(post.cover);
+    dom.editorDescription.value = valueOrEmpty(post.description);
+    dom.editorKeywords.value = asList(post.keywords).join(', ');
+    dom.editorComments.checked = post.comments !== false;
+    dom.editorHighlightShrink.checked = post.highlight_shrink === true;
+    dom.editorTopImgDisabled.checked = post.top_img === false;
+    dom.editorTopImg.value = post.top_img && post.top_img !== false ? valueOrEmpty(post.top_img) : '';
+    dom.editorLocation.value = valueOrEmpty(post.location);
+    dom.editorSwiperIndex.value = valueOrEmpty(post.swiper_index);
+    dom.editorCopyrightAuthor.value = valueOrEmpty(post.copyright_author);
+    dom.editorCopyrightUrl.value = valueOrEmpty(post.copyright_url);
+    renderChips('categories');
+    renderChips('tags');
+    renderSuggestions('tags', '');
+    updateCoverPreview();
+    syncTopImgState();
+    updateMetaSummary();
+  }
+
+  function maybeSet(payload, post, key, value) {
+    if (value !== '' && value !== null && value !== undefined) {
+      payload[key] = value;
+    } else if (rawHasKey(post, key)) {
+      payload[key] = '';
+    }
+  }
+
+  function getMetadataPayload(post) {
+    var payload = {};
+    maybeSet(payload, post, 'abbrlink', dom.editorAbbrlink.value.trim());
+    maybeSet(payload, post, 'author', dom.editorAuthor.value.trim());
+    maybeSet(payload, post, 'date', normalizeDateForSave(dom.editorDate.value));
+    maybeSet(payload, post, 'cover', dom.editorCover.value.trim());
+    maybeSet(payload, post, 'description', dom.editorDescription.value.trim());
+    maybeSet(payload, post, 'keywords', asList(dom.editorKeywords.value));
+
+    if (dom.editorComments.checked === false || rawHasKey(post, 'comments')) {
+      payload.comments = dom.editorComments.checked;
+    }
+    if (dom.editorHighlightShrink.checked || rawHasKey(post, 'highlight_shrink')) {
+      payload.highlight_shrink = dom.editorHighlightShrink.checked;
+    }
+    if (dom.editorTopImgDisabled.checked) {
+      payload.top_img = false;
+    } else {
+      maybeSet(payload, post, 'top_img', dom.editorTopImg.value.trim());
+    }
+    maybeSet(payload, post, 'location', dom.editorLocation.value.trim());
+    maybeSet(payload, post, 'swiper_index', dom.editorSwiperIndex.value ? Number(dom.editorSwiperIndex.value) : '');
+    maybeSet(payload, post, 'copyright_author', dom.editorCopyrightAuthor.value.trim());
+    maybeSet(payload, post, 'copyright_url', dom.editorCopyrightUrl.value.trim());
+    return payload;
   }
 
   // ==================== Render ====================
@@ -379,6 +598,7 @@
     state.previewVisible = false;
     dom.themePreview.style.display = 'none';
     dom.viewEditor.classList.remove('preview-active');
+    dom.viewEditor.classList.remove('metadata-collapsed');
     dom.btnThemePreview.classList.remove('active');
     dom.btnThemePreview.style.display = 'inline-flex';
     if (state.previewDebounce) {
@@ -387,8 +607,7 @@
     }
 
     dom.editorTitle.value = post.title || '';
-    dom.editorTags.value = (post.tags && post.tags.data ? post.tags.data : []).join(', ');
-    dom.editorCategories.value = (post.categories && post.categories.data ? post.categories.data : []).join(', ');
+    fillMetadata(post);
 
     var isDraft = post.isDraft;
     var isPage = post._isPage;
@@ -416,13 +635,31 @@
   function initEditor(post) {
     // Destroy previous instance
     if (state.editor) {
-      var prevEl = document.querySelector('.EasyMDEContainer');
-      if (prevEl) prevEl.remove();
+      if (typeof state.editor.toTextArea === 'function') {
+        state.editor.toTextArea();
+      } else {
+        var prevEl = document.querySelector('.EasyMDEContainer');
+        if (prevEl) prevEl.remove();
+      }
       state.editor = null;
     }
 
     var textarea = dom.editorTextarea;
     textarea.value = post._content || post.content || post.raw || '';
+    state.usingPlainEditor = false;
+    dom.editorBody.classList.remove('plain-editor');
+
+    if (typeof EasyMDE === 'undefined') {
+      state.usingPlainEditor = true;
+      dom.editorBody.classList.add('plain-editor');
+      textarea.style.display = 'block';
+      textarea.removeAttribute('hidden');
+      textarea.placeholder = '开始写作...';
+      textarea.oninput = schedulePreviewUpdate;
+      setTimeout(function () { textarea.focus(); }, 100);
+      toast('编辑器资源加载失败，已切换为基础编辑模式', 'info');
+      return;
+    }
 
     state.editor = new EasyMDE({
       element: textarea,
@@ -460,11 +697,13 @@
       });
     }
 
-    // Set up title/tags/categories auto-refresh for preview
-    var refreshPreview = function () { schedulePreviewUpdate(); };
-    dom.editorTitle.addEventListener('input', refreshPreview);
-    dom.editorTags.addEventListener('input', refreshPreview);
-    dom.editorCategories.addEventListener('input', refreshPreview);
+  }
+
+  function getEditorValue() {
+    if (state.editor && typeof state.editor.value === 'function') {
+      return state.editor.value();
+    }
+    return dom.editorTextarea.value || '';
   }
 
   // ==================== Theme Preview ====================
@@ -480,10 +719,13 @@
     var iframe = dom.themePreviewIframe;
     if (!iframe) return;
 
-    var content = state.editor ? state.editor.value() : '';
+    var content = getEditorValue();
     var title = dom.editorTitle.value.trim() || '文章预览';
-    var tags = dom.editorTags.value || '';
-    var categories = dom.editorCategories.value || '';
+    var tags = getChipValues('tags');
+    var categories = getChipValues('categories');
+    var cover = dom.editorCover ? dom.editorCover.value.trim() : '';
+    var description = dom.editorDescription ? dom.editorDescription.value.trim() : '';
+    var author = dom.editorAuthor && dom.editorAuthor.value.trim() ? dom.editorAuthor.value.trim() : 'Soar';
 
     // Render markdown to HTML using EasyMDE's built-in renderer
     var htmlContent = content;
@@ -493,22 +735,23 @@
 
     // Build category and tag HTML
     var catHtml = '';
-    if (categories.trim()) {
-      var cats = categories.split(',').map(function (c) { return c.trim(); }).filter(Boolean);
-      catHtml = cats.map(function (c) {
+    if (categories.length) {
+      catHtml = categories.map(function (c) {
         return '<a class="post-meta-categories">' + escapeHtml(c) + '</a>';
       }).join('');
     }
 
     var tagHtml = '';
-    if (tags.trim()) {
-      var tgs = tags.split(',').map(function (t) { return t.trim(); }).filter(Boolean);
-      tagHtml = tgs.map(function (t) {
+    if (tags.length) {
+      tagHtml = tags.map(function (t) {
         return '<a>' + escapeHtml(t) + '</a>';
       }).join('');
     }
 
-    var dateStr = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    var previewDate = dom.editorDate && dom.editorDate.value ? new Date(dom.editorDate.value) : new Date();
+    var dateStr = previewDate.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    var coverHtml = cover ? '<figure class="preview-cover"><img src="' + escapeHtml(cover) + '" alt=""></figure>' : '';
+    var descriptionHtml = description ? '<p class="preview-description">' + escapeHtml(description) + '</p>' : '';
 
     // Build the full preview HTML with Anzhiyu theme structure
     var previewHtml = '<!DOCTYPE html>' +
@@ -556,6 +799,9 @@
       '  .post-meta-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; font-size: 13px; color: #858585; }' +
       '  .post-meta-header time { color: #858585; }' +
       '  .post-meta-header span { color: #858585; }' +
+      '  .preview-cover { margin: 18px 0 22px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 14px; background: #eef2ff; }' +
+      '  .preview-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }' +
+      '  .preview-description { margin: 12px 0 16px; padding: 12px 14px; border-radius: 10px; color: #4e5969; background: rgba(66,90,239,0.06); }' +
       '  @media (max-width: 768px) {' +
       '    #body-wrap { padding: 16px; }' +
       '    #CrawlerTitle { font-size: 1.5em; }' +
@@ -571,9 +817,11 @@
               tagHtml +
       '        <h1 id="CrawlerTitle">' + escapeHtml(title) + '</h1>' +
       '        <div class="post-meta-header">' +
-      '          <span>Soar</span>' +
+      '          <span>' + escapeHtml(author) + '</span>' +
       '          <time>' + dateStr + '</time>' +
       '        </div>' +
+              descriptionHtml +
+              coverHtml +
       '      </header>' +
               htmlContent +
       '    </article>' +
@@ -645,22 +893,31 @@
       return;
     }
 
-    var content = state.editor ? state.editor.value() : '';
-    var tags = dom.editorTags.value.split(',').map(function (t) { return t.trim(); }).filter(Boolean);
-    var categories = dom.editorCategories.value.split(',').map(function (c) { return c.trim(); }).filter(Boolean);
+    var content = getEditorValue();
+    var tags = getChipValues('tags');
+    var categories = getChipValues('categories');
 
-    var body = {
+    var body = Object.assign({
       title: title,
       raw: content,
       _content: content,
       tags: tags,
       categories: categories,
-    };
+    }, getMetadataPayload(post));
 
     try {
       var isPage = post._isPage;
       var endpoint = isPage ? ('pages/' + post._id) : ('posts/' + post._id);
-      await api.post(endpoint, body);
+      var result = await api.post(endpoint, body);
+      if (result) {
+        var saved = result.post || result.page || result;
+        if (saved && saved._id) {
+          saved._isPage = isPage;
+          state.currentPost = saved;
+          fillMetadata(saved);
+          dom.btnSave.onclick = function () { savePost(saved); };
+        }
+      }
       toast('保存成功', 'success');
       // Refresh tags/categories
       loadTagsCategories();
@@ -816,6 +1073,123 @@
     }
   }
 
+  function bindChipInput(kind, input) {
+    if (!input) return;
+    input.addEventListener('keydown', function (e) {
+      var shouldAdd = e.key === 'Enter' || e.key === ',' || (e.key === 'Tab' && input.value.trim());
+      if (shouldAdd) {
+        e.preventDefault();
+        addChip(kind, input.value.replace(/,$/, ''));
+        input.value = '';
+        renderSuggestions(kind, '');
+      } else if (e.key === 'Backspace' && !input.value) {
+        var values = getChipValues(kind);
+        if (values.length) setChipValues(kind, values.slice(0, -1));
+      }
+    });
+    input.addEventListener('blur', function () {
+      if (input.value.trim()) {
+        addChip(kind, input.value);
+        input.value = '';
+      }
+    });
+    input.addEventListener('input', function () {
+      renderSuggestions(kind, input.value);
+    });
+  }
+
+  function bindChipList(kind, list) {
+    if (!list) return;
+    list.addEventListener('click', function (e) {
+      var button = e.target.closest('[data-chip-value]');
+      if (!button) return;
+      removeChip(kind, button.dataset.chipValue);
+    });
+  }
+
+  function bindMetadataEvents() {
+    bindChipInput('categories', dom.categoryChipInput);
+    bindChipInput('tags', dom.tagChipInput);
+    bindChipList('categories', dom.categoryChipList);
+    bindChipList('tags', dom.tagChipList);
+
+    if (dom.tagSuggestions) {
+      dom.tagSuggestions.addEventListener('click', function (e) {
+        var button = e.target.closest('[data-suggestion]');
+        if (!button) return;
+        addChip('tags', button.dataset.suggestion);
+        dom.tagChipInput.value = '';
+        renderSuggestions('tags', '');
+      });
+    }
+
+    var previewInputs = [
+      dom.editorTitle,
+      dom.editorAbbrlink,
+      dom.editorAuthor,
+      dom.editorDate,
+      dom.editorCover,
+      dom.editorDescription,
+      dom.editorKeywords,
+      dom.editorTopImg,
+      dom.editorLocation,
+      dom.editorSwiperIndex,
+      dom.editorCopyrightAuthor,
+      dom.editorCopyrightUrl,
+    ];
+    previewInputs.forEach(function (input) {
+      if (!input) return;
+      input.addEventListener('input', function () {
+        if (input === dom.editorCover) updateCoverPreview();
+        updateMetaSummary();
+        schedulePreviewUpdate();
+      });
+    });
+
+    [dom.editorComments, dom.editorHighlightShrink, dom.editorTopImgDisabled].forEach(function (input) {
+      if (!input) return;
+      input.addEventListener('change', function () {
+        syncTopImgState();
+        schedulePreviewUpdate();
+      });
+    });
+
+    if (dom.btnUploadCover && dom.coverFileInput) {
+      dom.btnUploadCover.addEventListener('click', function () {
+        dom.coverFileInput.click();
+      });
+      dom.coverFileInput.addEventListener('change', function () {
+        var file = dom.coverFileInput.files && dom.coverFileInput.files[0];
+        if (!file) return;
+        uploadImage(file, function (src) {
+          dom.editorCover.value = src;
+          updateCoverPreview();
+          updateMetaSummary();
+          schedulePreviewUpdate();
+          dom.coverFileInput.value = '';
+        }, function (msg) {
+          toast(msg || '封面上传失败', 'error');
+          dom.coverFileInput.value = '';
+        });
+      });
+    }
+
+    if (dom.btnClearCover) {
+      dom.btnClearCover.addEventListener('click', function () {
+        dom.editorCover.value = '';
+        updateCoverPreview();
+        updateMetaSummary();
+        schedulePreviewUpdate();
+      });
+    }
+
+    if (dom.metadataToggle) {
+      dom.metadataToggle.addEventListener('click', function () {
+        dom.viewEditor.classList.toggle('metadata-collapsed');
+      });
+    }
+  }
+
   // ==================== Event Binding ====================
   function bindEvents() {
     // Navigation
@@ -857,6 +1231,7 @@
     dom.btnDeploy.addEventListener('click', deploy);
 
     // Theme Preview
+    bindMetadataEvents();
     dom.btnThemePreview.addEventListener('click', toggleThemePreview);
     dom.btnThemePreviewClose.addEventListener('click', function () {
       state.previewVisible = false;
