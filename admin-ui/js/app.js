@@ -451,8 +451,8 @@
       if (filter === 'draft' && !p.isDraft) return false;
       if (search) {
         var title = (p.title || '').toLowerCase();
-        var tags = (p.tags && p.tags.data ? p.tags.data.join(' ') : '').toLowerCase();
-        var cats = (p.categories && p.categories.data ? p.categories.data.join(' ') : '').toLowerCase();
+        var tags = asList(p.tags).join(' ').toLowerCase();
+        var cats = asList(p.categories).join(' ').toLowerCase();
         if (title.indexOf(search) === -1 && tags.indexOf(search) === -1 && cats.indexOf(search) === -1) return false;
       }
       return true;
@@ -494,10 +494,10 @@
       dom.emptyState.style.display = 'none';
       dom.postList.innerHTML = filtered.map(function (p) {
         var date = p.date ? new Date(p.date).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '';
-        var tags = (p.tags && p.tags.data ? p.tags.data : []).map(function (t) {
+        var tags = asList(p.tags).map(function (t) {
           return '<span class="post-card-tag">' + escapeHtml(t) + '</span>';
         }).join('');
-        var cats = (p.categories && p.categories.data ? p.categories.data : []).map(function (c) {
+        var cats = asList(p.categories).map(function (c) {
           return '<span class="post-card-cat">' + escapeHtml(c) + '</span>';
         }).join('');
         var statusClass = p.isDraft ? 'draft' : 'published';

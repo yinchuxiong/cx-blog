@@ -1,3 +1,4 @@
+---
 title: LangChain 笔记：LCEL 这条管道怎么想
 abbrlink: langchain-lcel-notes
 author: Soar
