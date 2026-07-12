@@ -1,0 +1,27 @@
+{
+  "name": "Soar Blog",
+  "short_name": "Soar",
+  "description": "生活经历、开发相关的问题和看法，还有知识和分享",
+  "start_url": "/blog/",
+  "scope": "/blog/",
+  "display": "standalone",
+  "background_color": "#f7f9fe",
+  "theme_color": "#425AEF",
+  "icons": [
+    {
+      "src": "/blog/img/siteicon/32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/blog/img/siteicon/16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/blog/img/siteicon/apple-icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

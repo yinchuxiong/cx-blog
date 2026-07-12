@@ -970,7 +970,7 @@ icons:
 pjax:
   enable: true
   exclude:
-    - /music/
+    - /blog/music/
     - javascript:void(0)
     - javascript:;
 
@@ -1014,7 +1014,7 @@ lazyload:
 pwa:
   enable: true
   startup_image_enable: true
-  manifest: /manifest.json
+  manifest: /blog/manifest.json
   theme_color: var(--anzhiyu-main)
   mask_icon: /img/siteicon/apple-icon-180.png
   apple_touch_icon: /img/siteicon/apple-icon-180.png
@@ -1302,7 +1302,7 @@ CDN:
     # flickr_justified_gallery_css:
     aplayer_css: https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.css
     aplayer_js: https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js
-    meting_js: https://cdn.jsdelivr.net/npm/meting@2.0.1/dist/Meting.min.js
+    meting_js: https://cdn.cbd.int/meting@2.0.1/dist/Meting.min.js
     meting_api: https://cxcloud66.top/music-api/api?server=:server&type=:type&id=:id&r=:r&cookie=:auth
     # prismjs_js:
     # prismjs_lineNumber_js:

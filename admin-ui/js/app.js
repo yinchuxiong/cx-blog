@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  const API = '/admin/api/';
+  const API = '/blog/admin/api/';
 
   // ==================== State ====================
   const state = {
