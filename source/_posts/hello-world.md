@@ -4,7 +4,7 @@ abbrlink: hello-world
 tags: []
 categories:
   - 教程
-cover: 'https://bu.dusays.com/2023/07/24/64bdcbfe96762.webp'
+cover: /img/default_cover.jpg
 date: 2024-01-20 12:00:00
 ---
 欢迎来到Soar主题博客！这是一个基于 Hexo 框架 + Soar 主题搭建的示例站点。

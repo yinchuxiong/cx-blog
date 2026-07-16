@@ -52,13 +52,9 @@ async function deploy() {
       log('WARN', 'npm install 失败，继续执行');
     });
 
-    // 3. 生成静态页面
+    // 3. 生成静态页面（Nginx 直接服务 public/ 目录，无需 hexo server）
     log('INFO', 'Step 3: hexo generate');
     await runCommand('npx hexo generate', REPO_DIR);
-
-    // 4. 重启 Hexo 服务器
-    log('INFO', 'Step 4: 重启 Hexo 服务器');
-    await runCommand('sudo systemctl restart hexo-blog', REPO_DIR);
 
     log('INFO', '========== 部署完成 ==========');
     return true;
