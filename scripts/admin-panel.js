@@ -84,7 +84,12 @@ hexo.extend.filter.register('server_middleware', function (app) {
     // Only intercept admin routes (not API, not login)
     if (url.indexOf(adminBaseSlash) !== 0 && url !== adminBase) return next();
     if (url.indexOf(adminBaseSlash + 'api/') === 0) return next();
-    if (url.indexOf(adminBaseSlash + 'login') === 0) return next();
+    // Serve login page from custom UI
+    if (url.indexOf(adminBaseSlash + 'login') === 0) {
+      var loginPath = path.join(adminUiPath, 'login.html');
+      if (serveStaticFile(loginPath, res)) return;
+      return next();
+    }
 
     if (url === adminBase) {
       res.writeHead(302, {

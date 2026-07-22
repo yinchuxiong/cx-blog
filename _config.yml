@@ -111,6 +111,10 @@ search:
   content: true
   format: html
 
+# Admin
+admin:
+  deployCommand: 'cd /home/ubuntu/cx-blog && npx hexo generate'
+
 # Deployment
 deploy:
   type: ''
